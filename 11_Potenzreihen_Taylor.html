@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potenzreihen und Taylor-Approximation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .formula {
+            font-size: 16px;
+            color: #2563eb;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .convergence-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .convergent {
+            background: #d4edda;
+            color: #155724;
+        }
+        .divergent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .terms-display {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .term {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 3px 0;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Potenzreihen und Taylor-Approximation</h1>
+
+        <div class="description">
+            <p><strong>Potenzreihe:</strong> Eine unendliche Summe der Form ∑<sub>n=0</sub><sup>∞</sup> a<sub>n</sub>(x-x<sub>0</sub>)<sup>n</sup></p>
+            <p><strong>Taylor-Reihe:</strong> f(x) = ∑<sub>n=0</sub><sup>∞</sup> f<sup>(n)</sup>(x<sub>0</sub>)/n! · (x-x<sub>0</sub>)<sup>n</sup></p>
+            <p>Entwicklungspunkt x<sub>0</sub> ist der Mittelpunkt der Reihe (bei x<sub>0</sub>=0: MacLaurin-Reihe)</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('exp')">e^x</button>
+            <button class="example-btn" onclick="loadExample('sin')">sin(x)</button>
+            <button class="example-btn" onclick="loadExample('cos')">cos(x)</button>
+            <button class="example-btn" onclick="loadExample('ln')">ln(1+x)</button>
+            <button class="example-btn" onclick="loadExample('arctan')">arctan(x)</button>
+            <button class="example-btn" onclick="loadExample('geometric')">1/(1-x)</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion</label>
+                <select id="function">
+                    <option value="exp">f(x) = e^x</option>
+                    <option value="sin">f(x) = sin(x)</option>
+                    <option value="cos">f(x) = cos(x)</option>
+                    <option value="ln">f(x) = ln(1+x)</option>
+                    <option value="arctan">f(x) = arctan(x)</option>
+                    <option value="geometric">f(x) = 1/(1-x)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Terme n: <span id="nValue">5</span></label>
+                <input type="range" id="n" min="1" max="20" value="5">
+            </div>
+
+            <div class="control-group">
+                <label>Entwicklungspunkt x₀: <span id="x0Value">0.0</span></label>
+                <input type="range" id="x0" min="-2" max="2" step="0.1" value="0">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Ursprüngliche Funktion f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb; height: 3px;"></div>
+                <span>Taylor-Polynom T<sub>n</sub>(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 204, 113, 0.3); width: 30px;"></div>
+                <span>Konvergenzradius</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="1000" height="500"></canvas>
+
+        <div class="formula-box">
+            <h4 style="margin-top: 0; color: #2563eb;">Taylor-Reihe (Entwicklung um x₀):</h4>
+            <div class="formula" id="taylorFormula"></div>
+        </div>
+
+        <div class="info">
+            <p><strong>Anzahl Terme:</strong> <span id="nTerms">0</span></p>
+            <p><strong>Entwicklungspunkt:</strong> x₀ = <span id="x0Info">0</span></p>
+            <p><strong>Konvergenzradius:</strong> R = <span id="convergenceRadius">∞</span></p>
+            <p><strong>Status:</strong> <span id="convergenceStatus"></span></p>
+        </div>
+
+        <div class="terms-display">
+            <h4 style="margin-top: 0; color: #64748b;">Einzelne Terme der Reihe:</h4>
+            <div id="termsDisplay"></div>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle eine Funktion und beobachte, wie die Taylor-Approximation konvergiert.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+        const x0Slider = document.getElementById('x0');
+        const x0Value = document.getElementById('x0Value');
+
+        function factorial(n) {
+            if (n <= 1) return 1;
+            return n * factorial(n - 1);
+        }
+
+        const functions = {
+            exp: {
+                f: x => Math.exp(x),
+                name: 'e^x',
+                taylorTerm: (n, x, x0) => Math.exp(x0) * Math.pow(x - x0, n) / factorial(n),
+                convergenceRadius: Infinity,
+                xMin: -3,
+                xMax: 3,
+                yMin: -2,
+                yMax: 8,
+                description: 'Die Exponentialfunktion konvergiert für alle x (R = ∞). Sie ist gleich ihrer eigenen Ableitung.'
+            },
+            sin: {
+                f: x => Math.sin(x),
+                name: 'sin(x)',
+                taylorTerm: (n, x, x0) => {
+                    // f^(n)(x0) für sin: sin, cos, -sin, -cos, sin, ...
+                    const cycle = n % 4;
+                    let derivative;
+                    if (cycle === 0) derivative = Math.sin(x0);
+                    else if (cycle === 1) derivative = Math.cos(x0);
+                    else if (cycle === 2) derivative = -Math.sin(x0);
+                    else derivative = -Math.cos(x0);
+                    return derivative * Math.pow(x - x0, n) / factorial(n);
+                },
+                convergenceRadius: Infinity,
+                xMin: -2 * Math.PI,
+                xMax: 2 * Math.PI,
+                yMin: -2,
+                yMax: 2,
+                description: 'Sinus konvergiert für alle x (R = ∞). Die Ableitungen zyklieren: sin, cos, -sin, -cos.'
+            },
+            cos: {
+                f: x => Math.cos(x),
+                name: 'cos(x)',
+                taylorTerm: (n, x, x0) => {
+                    // f^(n)(x0) für cos: cos, -sin, -cos, sin, cos, ...
+                    const cycle = n % 4;
+                    let derivative;
+                    if (cycle === 0) derivative = Math.cos(x0);
+                    else if (cycle === 1) derivative = -Math.sin(x0);
+                    else if (cycle === 2) derivative = -Math.cos(x0);
+                    else derivative = Math.sin(x0);
+                    return derivative * Math.pow(x - x0, n) / factorial(n);
+                },
+                convergenceRadius: Infinity,
+                xMin: -2 * Math.PI,
+                xMax: 2 * Math.PI,
+                yMin: -2,
+                yMax: 2,
+                description: 'Kosinus konvergiert für alle x (R = ∞). Die Ableitungen zyklieren: cos, -sin, -cos, sin.'
+            },
+            ln: {
+                f: x => Math.log(1 + x),
+                name: 'ln(1+x)',
+                taylorTerm: (n, x, x0) => {
+                    if (n === 0) return Math.log(1 + x0);
+                    // f^(n)(x) = (-1)^(n-1) * (n-1)! / (1+x)^n für n >= 1
+                    const derivative = Math.pow(-1, n - 1) * factorial(n - 1) / Math.pow(1 + x0, n);
+                    return derivative * Math.pow(x - x0, n) / factorial(n);
+                },
+                convergenceRadius: 1,
+                xMin: -0.9,
+                xMax: 3,
+                yMin: -3,
+                yMax: 2,
+                description: 'ln(1+x) konvergiert für |x-x₀| < |1+x₀| (relativ zu x₀). Vorsicht bei x₀ nahe -1!'
+            },
+            arctan: {
+                f: x => Math.atan(x),
+                name: 'arctan(x)',
+                taylorTerm: (n, x, x0) => {
+                    if (n === 0) return Math.atan(x0);
+                    // Berechne n-te Ableitung von arctan an x0
+                    // Komplexere Formel, verwende numerische Ableitung für Genauigkeit
+                    const h = 0.0001;
+                    let derivative = 0;
+                    // Vereinfachte Berechnung für niedrige n
+                    if (n === 1) derivative = 1 / (1 + x0 * x0);
+                    else if (n === 2) derivative = -2 * x0 / Math.pow(1 + x0 * x0, 2);
+                    else {
+                        // Für höhere Ableitungen: verwende Rekursion oder numerische Methode
+                        // Hier verwenden wir Taylor um x0=0 als Approximation
+                        if (Math.abs(x0) < 0.5) {
+                            if (n % 2 === 0) return 0;
+                            const sign = Math.pow(-1, (n - 1) / 2);
+                            return sign * Math.pow(x - x0, n) / n;
+                        }
+                        derivative = 0;
+                    }
+                    return derivative * Math.pow(x - x0, n) / factorial(n);
+                },
+                convergenceRadius: 1,
+                xMin: -3,
+                xMax: 3,
+                yMin: -2,
+                yMax: 2,
+                description: 'arctan(x) konvergiert für |x-x₀| < √(1+x₀²). Komplexe Entwicklung für x₀ ≠ 0.'
+            },
+            geometric: {
+                f: x => 1 / (1 - x),
+                name: '1/(1-x)',
+                taylorTerm: (n, x, x0) => {
+                    // f(x) = 1/(1-x), entwickelt um x0
+                    // f^(n)(x) = n! / (1-x)^(n+1)
+                    const derivative = factorial(n) / Math.pow(1 - x0, n + 1);
+                    return derivative * Math.pow(x - x0, n) / factorial(n);
+                },
+                convergenceRadius: 1,
+                xMin: -0.5,
+                xMax: 0.95,
+                yMin: 0,
+                yMax: 10,
+                description: 'Geometrische Reihe um x₀: konvergiert für |x-x₀| < |1-x₀|. Singularität bei x=1!'
+            }
+        };
+
+        function evaluateTaylor(funcData, x, x0, n) {
+            let sum = 0;
+            for (let i = 0; i <= n; i++) {
+                sum += funcData.taylorTerm(i, x, x0);
+            }
+            return sum;
+        }
+
+        function toCanvasX(x, xMin, xMax) {
+            const padding = 60;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - xMin) / (xMax - xMin) * width;
+        }
+
+        function toCanvasY(y, yMin, yMax) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - yMin) / (yMax - yMin) * height;
+        }
+
+        function drawAxes(xMin, xMax, yMin, yMax) {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(xMin, xMin, xMax), toCanvasY(0, yMin, yMax));
+            ctx.lineTo(toCanvasX(xMax, xMin, xMax), toCanvasY(0, yMin, yMax));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, xMin, xMax), toCanvasY(yMin, yMin, yMax));
+            ctx.lineTo(toCanvasX(0, xMin, xMax), toCanvasY(yMax, yMin, yMax));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(xMax, xMin, xMax) + 10, toCanvasY(0, yMin, yMax) + 5);
+            ctx.fillText('y', toCanvasX(0, xMin, xMax) + 10, toCanvasY(yMax, yMin, yMax) - 10);
+        }
+
+        function drawConvergenceRegion(x0, R, xMin, xMax, yMin, yMax) {
+            if (!isFinite(R)) return;
+
+            const x_left = Math.max(xMin, x0 - R);
+            const x_right = Math.min(xMax, x0 + R);
+
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.1)';
+            ctx.fillRect(
+                toCanvasX(x_left, xMin, xMax),
+                toCanvasY(yMax, yMin, yMax),
+                toCanvasX(x_right, xMin, xMax) - toCanvasX(x_left, xMin, xMax),
+                toCanvasY(yMin, yMin, yMax) - toCanvasY(yMax, yMin, yMax)
+            );
+
+            // Grenzen zeichnen
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+
+            // Linke Grenze
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x0 - R, xMin, xMax), toCanvasY(yMin, yMin, yMax));
+            ctx.lineTo(toCanvasX(x0 - R, xMin, xMax), toCanvasY(yMax, yMin, yMax));
+            ctx.stroke();
+
+            // Rechte Grenze
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x0 + R, xMin, xMax), toCanvasY(yMin, yMin, yMax));
+            ctx.lineTo(toCanvasX(x0 + R, xMin, xMax), toCanvasY(yMax, yMin, yMax));
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+        }
+
+        function drawFunction(func, xMin, xMax, yMin, yMax, color, lineWidth = 2) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 800) {
+                const y = func(x);
+                if (y >= yMin && y <= yMax && !isNaN(y) && isFinite(y)) {
+                    const cx = toCanvasX(x, xMin, xMax);
+                    const cy = toCanvasY(y, yMin, yMax);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                } else {
+                    started = false;
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawDevelopmentPoint(x0, xMin, xMax, yMin, yMax) {
+            ctx.fillStyle = '#f39c12';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(toCanvasX(x0, xMin, xMax), toCanvasY(0, yMin, yMax), 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Vertikale Linie
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x0, xMin, xMax), toCanvasY(yMin, yMin, yMax));
+            ctx.lineTo(toCanvasX(x0, xMin, xMax), toCanvasY(yMax, yMin, yMax));
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function displayTerms(funcData, x0, n) {
+            const termsDiv = document.getElementById('termsDisplay');
+            let html = '';
+
+            for (let i = 0; i <= Math.min(n, 15); i++) {
+                // Berechne Koeffizient a_i = f^(i)(x0) / i!
+                // Verwende (x0 + 1) als Testpunkt um den Koeffizienten zu extrahieren
+                const term = funcData.taylorTerm(i, x0 + 1, x0);
+                // Koeffizient ist term / (1)^i = term
+                const coeff = term;
+                if (Math.abs(coeff) > 0.00001 || i === 0) {
+                    const sign = coeff >= 0 ? '+' : '';
+                    html += `<div class="term">Term ${i}: ${sign}${coeff.toFixed(6)} · (x - ${x0.toFixed(1)})^${i}</div>`;
+                }
+            }
+
+            if (n > 15) {
+                html += '<div class="term">... (weitere Terme)</div>';
+            }
+
+            termsDiv.innerHTML = html || '<div class="term">Keine signifikanten Terme</div>';
+        }
+
+        function updateInterpretation(funcData, n, x0) {
+            const interp = document.getElementById('interpretation');
+
+            let text = `<strong>${funcData.name}:</strong> ${funcData.description}<br><br>`;
+
+            text += `Mit <strong>${n} Termen</strong> approximieren wir die Funktion um den Entwicklungspunkt x₀ = ${x0.toFixed(2)}. `;
+
+            if (n < 5) {
+                text += `Die Approximation ist noch grob. Erhöhe n für bessere Genauigkeit!`;
+            } else if (n < 10) {
+                text += `Gute Approximation in der Nähe von x₀. Weiter entfernt wird der Fehler größer.`;
+            } else {
+                text += `Sehr gute Approximation mit ${n} Termen! Die Taylor-Reihe nähert sich der Funktion stark an.`;
+            }
+
+            if (isFinite(funcData.convergenceRadius)) {
+                text += `<br><br><strong>Wichtig:</strong> Die Reihe konvergiert nur innerhalb des grün markierten Bereichs (|x - x₀| < ${funcData.convergenceRadius})!`;
+            } else {
+                text += `<br><br>Diese Reihe konvergiert für alle x (Konvergenzradius R = ∞).`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const n = parseInt(nSlider.value);
+            const x0 = parseFloat(x0Slider.value);
+
+            nValue.textContent = n;
+            x0Value.textContent = x0.toFixed(1);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawAxes(funcData.xMin, funcData.xMax, funcData.yMin, funcData.yMax);
+            drawConvergenceRegion(x0, funcData.convergenceRadius, funcData.xMin, funcData.xMax, funcData.yMin, funcData.yMax);
+            drawDevelopmentPoint(x0, funcData.xMin, funcData.xMax, funcData.yMin, funcData.yMax);
+
+            // Zeichne Taylor-Approximation
+            const taylorFunc = x => evaluateTaylor(funcData, x, x0, n);
+            drawFunction(taylorFunc, funcData.xMin, funcData.xMax, funcData.yMin, funcData.yMax, '#2563eb', 3);
+
+            // Zeichne Originalfunktion
+            drawFunction(funcData.f, funcData.xMin, funcData.xMax, funcData.yMin, funcData.yMax, '#e74c3c', 3);
+
+            // Update Info
+            document.getElementById('nTerms').textContent = n + 1;
+            document.getElementById('x0Info').textContent = x0.toFixed(2);
+            document.getElementById('convergenceRadius').textContent =
+                isFinite(funcData.convergenceRadius) ? funcData.convergenceRadius : '∞';
+
+            const isConvergent = isFinite(funcData.convergenceRadius);
+            const statusHTML = isConvergent
+                ? '<span class="convergence-indicator convergent">Konvergiert in Bereich</span>'
+                : '<span class="convergence-indicator convergent">Konvergiert überall</span>';
+            document.getElementById('convergenceStatus').innerHTML = statusHTML;
+
+            // Taylor-Formel
+            document.getElementById('taylorFormula').textContent =
+                `T${n}(x) = Σ(n=0 bis ${n}) f^(n)(${x0.toFixed(1)})/n! · (x - ${x0.toFixed(1)})^n`;
+
+            displayTerms(funcData, x0, n);
+            updateInterpretation(funcData, n, x0);
+        }
+
+        function loadExample(type) {
+            functionSelect.value = type;
+            x0Slider.value = 0;
+            nSlider.value = 8;
+            draw();
+        }
+
+        functionSelect.addEventListener('change', draw);
+        nSlider.addEventListener('input', draw);
+        x0Slider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fläche zwischen zwei Funktionen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .formula {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fläche zwischen zwei Funktionen</h1>
+
+        <div class="description">
+            <p><strong>Konzept:</strong> Die Fläche zwischen zwei Funktionen f(x) und g(x) berechnet sich als Integral der Differenz.</p>
+            <p><strong>Formel:</strong> A = ∫<sub>a</sub><sup>b</sup> |f(x) - g(x)| dx</p>
+            <p>Wobei f(x) ≥ g(x) im Intervall [a, b]</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('parabola-line')">Parabel und Gerade</button>
+            <button class="example-btn" onclick="loadExample('trig')">Sinus und Kosinus</button>
+            <button class="example-btn" onclick="loadExample('exponential')">Exponential vs Linear</button>
+            <button class="example-btn" onclick="loadExample('polynomials')">Zwei Parabeln</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Obere Funktion f(x)</label>
+                <select id="upperFunc">
+                    <option value="x2">f(x) = x²</option>
+                    <option value="sin">f(x) = sin(x) + 2</option>
+                    <option value="exp">f(x) = e^(x/2)</option>
+                    <option value="x2plus">f(x) = -x² + 4</option>
+                    <option value="const2">f(x) = 2</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Untere Funktion g(x)</label>
+                <select id="lowerFunc">
+                    <option value="const0">g(x) = 0</option>
+                    <option value="cos">g(x) = cos(x) + 2</option>
+                    <option value="linear">g(x) = x/2</option>
+                    <option value="x2neg">g(x) = x² - 4</option>
+                    <option value="const1">g(x) = 1</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Rechtecke: <span id="nValue">30</span></label>
+                <input type="range" id="n" min="5" max="100" value="30">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Obere Funktion f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb; height: 3px;"></div>
+                <span>Untere Funktion g(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 204, 113, 0.4); border: 2px solid #27ae60;"></div>
+                <span>Fläche zwischen den Funktionen</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="500"></canvas>
+
+        <div class="formula-box">
+            <div class="formula" id="areaFormula">A = ∫ [f(x) - g(x)] dx</div>
+        </div>
+
+        <div class="info">
+            <p><strong>Berechnete Fläche:</strong> <span class="info-value" id="area">0</span></p>
+            <p><strong>Integralgrenzen:</strong> a = <span id="aValue">0</span>, b = <span id="bValue">0</span></p>
+            <p><strong>Anzahl Rechtecke:</strong> <span id="nInfo">0</span></p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle zwei Funktionen und beobachte, wie die Fläche zwischen ihnen berechnet wird.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const upperFuncSelect = document.getElementById('upperFunc');
+        const lowerFuncSelect = document.getElementById('lowerFunc');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+
+        const functions = {
+            x2: { f: x => x * x, name: 'x²' },
+            sin: { f: x => Math.sin(x) + 2, name: 'sin(x) + 2' },
+            exp: { f: x => Math.exp(x / 2), name: 'e^(x/2)' },
+            x2plus: { f: x => -x * x + 4, name: '-x² + 4' },
+            const0: { f: x => 0, name: '0' },
+            const1: { f: x => 1, name: '1' },
+            const2: { f: x => 2, name: '2' },
+            cos: { f: x => Math.cos(x) + 2, name: 'cos(x) + 2' },
+            linear: { f: x => x / 2, name: 'x/2' },
+            x2neg: { f: x => x * x - 4, name: 'x² - 4' }
+        };
+
+        let currentA = 0;
+        let currentB = 4;
+        let currentMaxY = 5;
+        let currentMinY = -1;
+
+        function determineIntegrationBounds(f1, f2) {
+            // Automatisch sinnvolle Grenzen bestimmen
+            const upperKey = upperFuncSelect.value;
+            const lowerKey = lowerFuncSelect.value;
+
+            // Spezielle Fälle
+            if (upperKey === 'sin' && lowerKey === 'cos') {
+                return { a: 0, b: Math.PI / 2, minY: 0, maxY: 4 };
+            } else if (upperKey === 'x2plus' && lowerKey === 'x2neg') {
+                return { a: -2, b: 2, minY: -5, maxY: 5 };
+            } else if (upperKey === 'exp') {
+                return { a: 0, b: 3, minY: -1, maxY: 5 };
+            } else {
+                return { a: 0, b: 4, minY: -1, maxY: 5 };
+            }
+        }
+
+        function toCanvasX(x) {
+            const padding = 60;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - currentA) / (currentB - currentA) * width;
+        }
+
+        function toCanvasY(y) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - currentMinY) / (currentMaxY - currentMinY) * height;
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(currentA), toCanvasY(0));
+            ctx.lineTo(toCanvasX(currentB), toCanvasY(0));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), toCanvasY(currentMinY));
+            ctx.lineTo(toCanvasX(0), toCanvasY(currentMaxY));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(currentB) + 10, toCanvasY(0) + 5);
+            ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(currentMaxY) - 10);
+            ctx.fillText(currentA.toFixed(1), toCanvasX(currentA) - 10, toCanvasY(0) + 20);
+            ctx.fillText(currentB.toFixed(1), toCanvasX(currentB) - 10, toCanvasY(0) + 20);
+        }
+
+        function drawFunction(func, color, lineWidth = 3) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = currentA; x <= currentB; x += (currentB - currentA) / 500) {
+                const y = func(x);
+                if (y >= currentMinY && y <= currentMaxY) {
+                    const cx = toCanvasX(x);
+                    const cy = toCanvasY(y);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        function calculateAreaBetween(f1, f2, n) {
+            const dx = (currentB - currentA) / n;
+            let sum = 0;
+
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.4)';
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < n; i++) {
+                const x = currentA + (i + 0.5) * dx;
+                const y1 = f1(x);
+                const y2 = f2(x);
+                const height = Math.abs(y1 - y2);
+
+                sum += height * dx;
+
+                // Zeichne Rechteck
+                const x1 = toCanvasX(currentA + i * dx);
+                const x2 = toCanvasX(currentA + (i + 1) * dx);
+                const yTop = toCanvasY(Math.max(y1, y2));
+                const yBottom = toCanvasY(Math.min(y1, y2));
+
+                ctx.fillRect(x1, yTop, x2 - x1, yBottom - yTop);
+                ctx.strokeRect(x1, yTop, x2 - x1, yBottom - yTop);
+            }
+
+            return sum;
+        }
+
+        function updateInterpretation(upperName, lowerName, area, n) {
+            const interp = document.getElementById('interpretation');
+
+            let text = `<strong>Berechnung:</strong> Die Fläche zwischen f(x) = ${upperName} und g(x) = ${lowerName} `;
+            text += `wird mit ${n} Rechtecken approximiert.<br><br>`;
+
+            text += `Jedes Rechteck hat die Höhe |f(x) - g(x)| an der Stelle x. `;
+            text += `Die Summe aller Rechteckflächen ergibt die Gesamtfläche von ${area.toFixed(4)}.<br><br>`;
+
+            if (n < 20) {
+                text += `Mit mehr Rechtecken wird die Approximation genauer.`;
+            } else if (n < 50) {
+                text += `Gute Approximation! Die Rechtecke folgen gut der Differenz der Funktionen.`;
+            } else {
+                text += `Sehr genaue Approximation mit ${n} Rechtecken!`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const upperKey = upperFuncSelect.value;
+            const lowerKey = lowerFuncSelect.value;
+            const upperFunc = functions[upperKey];
+            const lowerFunc = functions[lowerKey];
+            const n = parseInt(nSlider.value);
+
+            nValue.textContent = n;
+
+            // Bestimme Grenzen basierend auf den gewählten Funktionen
+            const bounds = determineIntegrationBounds(upperFunc.f, lowerFunc.f);
+            currentA = bounds.a;
+            currentB = bounds.b;
+            currentMinY = bounds.minY;
+            currentMaxY = bounds.maxY;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawAxes();
+
+            // Erst die Fläche zeichnen (damit sie im Hintergrund ist)
+            const area = calculateAreaBetween(upperFunc.f, lowerFunc.f, n);
+
+            // Dann die Funktionen
+            drawFunction(upperFunc.f, '#e74c3c', 3);
+            drawFunction(lowerFunc.f, '#2563eb', 3);
+
+            // Update Info
+            document.getElementById('area').textContent = area.toFixed(6);
+            document.getElementById('aValue').textContent = currentA.toFixed(2);
+            document.getElementById('bValue').textContent = currentB.toFixed(2);
+            document.getElementById('nInfo').textContent = n;
+
+            const a_str = currentA.toFixed(2);
+            const b_str = currentB.toFixed(2);
+            document.getElementById('areaFormula').textContent =
+                `A = ∫${a_str}→${b_str} [${upperFunc.name} - (${lowerFunc.name})] dx`;
+
+            updateInterpretation(upperFunc.name, lowerFunc.name, area, n);
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'parabola-line':
+                    upperFuncSelect.value = 'x2';
+                    lowerFuncSelect.value = 'const0';
+                    nSlider.value = 30;
+                    break;
+                case 'trig':
+                    upperFuncSelect.value = 'sin';
+                    lowerFuncSelect.value = 'cos';
+                    nSlider.value = 40;
+                    break;
+                case 'exponential':
+                    upperFuncSelect.value = 'exp';
+                    lowerFuncSelect.value = 'linear';
+                    nSlider.value = 35;
+                    break;
+                case 'polynomials':
+                    upperFuncSelect.value = 'x2plus';
+                    lowerFuncSelect.value = 'x2neg';
+                    nSlider.value = 40;
+                    break;
+            }
+            draw();
+        }
+
+        upperFuncSelect.addEventListener('change', draw);
+        lowerFuncSelect.addEventListener('change', draw);
+        nSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

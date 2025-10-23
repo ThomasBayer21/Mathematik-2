@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hauptsatz der Differential- und Integralrechnung</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .canvas-wrapper {
+            text-align: center;
+        }
+        .canvas-title {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            width: 100%;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .theorem-box {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 3px solid #2563eb;
+        }
+        .theorem-box h3 {
+            margin-top: 0;
+            color: #2563eb;
+            text-align: center;
+        }
+        .formula {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2563eb;
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .connection-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #f39c12;
+        }
+        .connection-box h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            font-size: 13px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hauptsatz der Differential- und Integralrechnung</h1>
+
+        <div class="description">
+            <p><strong>Der fundamentale Zusammenhang:</strong> Differenzieren und Integrieren sind inverse Operationen!</p>
+            <p>Wenn F(x) die Stammfunktion von f(x) ist, dann gilt: F'(x) = f(x)</p>
+        </div>
+
+        <div class="theorem-box">
+            <h3>Hauptsatz der Differential- und Integralrechnung</h3>
+            <div class="formula">
+                Wenn F(x) = ∫<sub>a</sub><sup>x</sup> f(t) dt, dann gilt: F'(x) = f(x)
+            </div>
+            <p style="text-align: center; margin-top: 15px;">
+                <strong>In Worten:</strong> Die Ableitung der Integralfunktion ist die ursprüngliche Funktion.
+            </p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('linear')">Linear: f(x) = x</button>
+            <button class="example-btn" onclick="loadExample('quadratic')">Quadratisch: f(x) = x²</button>
+            <button class="example-btn" onclick="loadExample('sin')">Trigonometrisch: f(x) = sin(x)</button>
+            <button class="example-btn" onclick="loadExample('exp')">Exponential: f(x) = e^x</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion f(x)</label>
+                <select id="function">
+                    <option value="const">f(x) = 2</option>
+                    <option value="linear">f(x) = x</option>
+                    <option value="quadratic">f(x) = x²</option>
+                    <option value="sin">f(x) = sin(x)</option>
+                    <option value="cos">f(x) = cos(x)</option>
+                    <option value="exp">f(x) = e^x</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Obere Grenze x: <span id="xValue">2.0</span></label>
+                <input type="range" id="xSlider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <div class="canvas-grid">
+            <div class="canvas-wrapper">
+                <div class="canvas-title">f(x) - Die ursprüngliche Funktion</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                        <span>f(x)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: rgba(46, 204, 113, 0.4); border: 2px solid #27ae60;"></div>
+                        <span>Fläche = F(x)</span>
+                    </div>
+                </div>
+                <canvas id="canvasF" width="600" height="400"></canvas>
+                <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">
+                    Die Fläche unter f von a bis x ergibt F(x)
+                </p>
+            </div>
+
+            <div class="canvas-wrapper">
+                <div class="canvas-title">F(x) - Die Stammfunktion (Integral)</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #2563eb; height: 3px;"></div>
+                        <span>F(x) = ∫ f(t) dt</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #27ae60; height: 3px;"></div>
+                        <span>F'(x) (Tangente)</span>
+                    </div>
+                </div>
+                <canvas id="canvasF_int" width="600" height="400"></canvas>
+                <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">
+                    F'(x) = f(x) - Die Steigung von F ist wieder f!
+                </p>
+            </div>
+        </div>
+
+        <div class="connection-box">
+            <h4>Der Zusammenhang im Detail:</h4>
+            <p id="connectionText"></p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Bewege den Slider und beobachte, wie die Fläche unter f(x) die Funktion F(x) ergibt.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvasF = document.getElementById('canvasF');
+        const canvasF_int = document.getElementById('canvasF_int');
+        const ctxF = canvasF.getContext('2d');
+        const ctxF_int = canvasF_int.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const xSlider = document.getElementById('xSlider');
+        const xValue = document.getElementById('xValue');
+
+        const functions = {
+            const: {
+                f: x => 2,
+                F: x => 2 * x,
+                name: 'f(x) = 2',
+                F_name: 'F(x) = 2x',
+                a: 0,
+                b: 4,
+                yMin_f: 0,
+                yMax_f: 3,
+                yMin_F: 0,
+                yMax_F: 8
+            },
+            linear: {
+                f: x => x,
+                F: x => 0.5 * x * x,
+                name: 'f(x) = x',
+                F_name: 'F(x) = x²/2',
+                a: 0,
+                b: 4,
+                yMin_f: 0,
+                yMax_f: 5,
+                yMin_F: 0,
+                yMax_F: 8
+            },
+            quadratic: {
+                f: x => x * x,
+                F: x => Math.pow(x, 3) / 3,
+                name: 'f(x) = x²',
+                F_name: 'F(x) = x³/3',
+                a: 0,
+                b: 3,
+                yMin_f: 0,
+                yMax_f: 10,
+                yMin_F: 0,
+                yMax_F: 10
+            },
+            sin: {
+                f: x => Math.sin(x),
+                F: x => 1 - Math.cos(x),
+                name: 'f(x) = sin(x)',
+                F_name: 'F(x) = -cos(x) + 1',
+                a: 0,
+                b: 2 * Math.PI,
+                yMin_f: -1.5,
+                yMax_f: 1.5,
+                yMin_F: -0.5,
+                yMax_F: 2.5
+            },
+            cos: {
+                f: x => Math.cos(x),
+                F: x => Math.sin(x) + 1,
+                name: 'f(x) = cos(x)',
+                F_name: 'F(x) = sin(x) + 1',
+                a: 0,
+                b: 2 * Math.PI,
+                yMin_f: -1.5,
+                yMax_f: 1.5,
+                yMin_F: -0.5,
+                yMax_F: 2.5
+            },
+            exp: {
+                f: x => Math.exp(x),
+                F: x => Math.exp(x),
+                name: 'f(x) = e^x',
+                F_name: 'F(x) = e^x',
+                a: 0,
+                b: 2,
+                yMin_f: 0,
+                yMax_f: 8,
+                yMin_F: 0,
+                yMax_F: 8
+            }
+        };
+
+        function toCanvasX(x, a, b, canvas) {
+            const padding = 50;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - a) / (b - a) * width;
+        }
+
+        function toCanvasY(y, minY, maxY, canvas) {
+            const padding = 40;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - minY) / (maxY - minY) * height;
+        }
+
+        function drawAxes(ctx, a, b, minY, maxY) {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            const canvas = ctx.canvas;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(a, a, b, canvas), toCanvasY(0, minY, maxY, canvas));
+            ctx.lineTo(toCanvasX(b, a, b, canvas), toCanvasY(0, minY, maxY, canvas));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(a, a, b, canvas), toCanvasY(minY, minY, maxY, canvas));
+            ctx.lineTo(toCanvasX(a, a, b, canvas), toCanvasY(maxY, minY, maxY, canvas));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.fillText('x', toCanvasX(b, a, b, canvas) + 10, toCanvasY(0, minY, maxY, canvas) + 5);
+        }
+
+        function drawFunction(ctx, func, a, b, minY, maxY, color, lineWidth = 2) {
+            const canvas = ctx.canvas;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = a; x <= b; x += (b - a) / 300) {
+                const y = func(x);
+                if (y >= minY && y <= maxY) {
+                    const cx = toCanvasX(x, a, b, canvas);
+                    const cy = toCanvasY(y, minY, maxY, canvas);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawArea(ctx, func, a, x, minY, maxY) {
+            const canvas = ctx.canvas;
+            const n = 50;
+            const dx = (x - a) / n;
+
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.4)';
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < n; i++) {
+                const x_i = a + (i + 0.5) * dx;
+                const y = func(x_i);
+
+                const x1 = toCanvasX(a + i * dx, a, canvas.width, canvas);
+                const x2 = toCanvasX(a + (i + 1) * dx, a, canvas.width, canvas);
+                const cy = toCanvasY(y, minY, maxY, canvas);
+                const cy0 = toCanvasY(0, minY, maxY, canvas);
+
+                if (y >= 0) {
+                    ctx.fillRect(x1, cy, x2 - x1, cy0 - cy);
+                    ctx.strokeRect(x1, cy, x2 - x1, cy0 - cy);
+                }
+            }
+        }
+
+        function drawTangent(ctx, F, f, x, a, b, minY, maxY) {
+            const canvas = ctx.canvas;
+            const slope = f(x);
+            const y0 = F(x);
+
+            const dx = (b - a) * 0.15;
+            const x1 = Math.max(a, x - dx);
+            const x2 = Math.min(b, x + dx);
+
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+
+            const y1 = y0 + slope * (x1 - x);
+            const y2 = y0 + slope * (x2 - x);
+
+            ctx.moveTo(toCanvasX(x1, a, b, canvas), toCanvasY(y1, minY, maxY, canvas));
+            ctx.lineTo(toCanvasX(x2, a, b, canvas), toCanvasY(y2, minY, maxY, canvas));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Punkt markieren
+            ctx.fillStyle = '#27ae60';
+            ctx.beginPath();
+            ctx.arc(toCanvasX(x, a, b, canvas), toCanvasY(y0, minY, maxY, canvas), 5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function updateConnection(funcData, x_val) {
+            const connectionText = document.getElementById('connectionText');
+            const fx = funcData.f(x_val).toFixed(3);
+            const Fx = funcData.F(x_val).toFixed(3);
+
+            let text = `<strong>An der Stelle x = ${x_val.toFixed(2)}:</strong><br><br>`;
+            text += `• Die Fläche unter f(x) von ${funcData.a} bis ${x_val.toFixed(2)} ist: <strong>F(${x_val.toFixed(2)}) = ${Fx}</strong><br>`;
+            text += `• Der Wert der ursprünglichen Funktion ist: <strong>f(${x_val.toFixed(2)}) = ${fx}</strong><br>`;
+            text += `• Die Steigung der Stammfunktion F ist: <strong>F'(${x_val.toFixed(2)}) = ${fx}</strong><br><br>`;
+            text += `➜ Die Steigung von F entspricht genau dem Wert von f! Das ist der Hauptsatz!`;
+
+            connectionText.innerHTML = text;
+        }
+
+        function updateInterpretation(funcData, x_val) {
+            const interp = document.getElementById('interpretation');
+
+            let text = `<strong>${funcData.name}</strong> wird zu <strong>${funcData.F_name}</strong> integriert.<br><br>`;
+
+            text += `<strong>Links:</strong> Die grüne Fläche unter f(x) akkumuliert sich und wird zu F(x).<br>`;
+            text += `<strong>Rechts:</strong> Die Stammfunktion F(x) wächst entsprechend der Fläche. `;
+            text += `Die Steigung von F (grüne Tangente) ist genau f(x)!<br><br>`;
+
+            text += `<strong>Fundamentale Einsicht:</strong> Wenn du F ableitest, bekommst du f zurück. `;
+            text += `Integrieren und Differenzieren sind inverse Operationen - wie + und -, oder × und ÷.`;
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const sliderVal = parseInt(xSlider.value);
+            const x_val = funcData.a + (funcData.b - funcData.a) * (sliderVal / 100);
+
+            xValue.textContent = x_val.toFixed(2);
+
+            // Linkes Canvas: f(x) mit Fläche
+            ctxF.clearRect(0, 0, canvasF.width, canvasF.height);
+            drawAxes(ctxF, funcData.a, funcData.b, funcData.yMin_f, funcData.yMax_f);
+            drawArea(ctxF, funcData.f, funcData.a, x_val, funcData.yMin_f, funcData.yMax_f);
+            drawFunction(ctxF, funcData.f, funcData.a, funcData.b, funcData.yMin_f, funcData.yMax_f, '#e74c3c', 3);
+
+            // Markiere aktuelle Position
+            ctxF.fillStyle = '#2563eb';
+            ctxF.beginPath();
+            ctxF.arc(
+                toCanvasX(x_val, funcData.a, funcData.b, canvasF),
+                toCanvasY(funcData.f(x_val), funcData.yMin_f, funcData.yMax_f, canvasF),
+                5, 0, 2 * Math.PI
+            );
+            ctxF.fill();
+
+            // Rechtes Canvas: F(x) mit Tangente
+            ctxF_int.clearRect(0, 0, canvasF_int.width, canvasF_int.height);
+            drawAxes(ctxF_int, funcData.a, funcData.b, funcData.yMin_F, funcData.yMax_F);
+            drawFunction(ctxF_int, funcData.F, funcData.a, funcData.b, funcData.yMin_F, funcData.yMax_F, '#2563eb', 3);
+            drawTangent(ctxF_int, funcData.F, funcData.f, x_val, funcData.a, funcData.b, funcData.yMin_F, funcData.yMax_F);
+
+            updateConnection(funcData, x_val);
+            updateInterpretation(funcData, x_val);
+        }
+
+        function loadExample(type) {
+            functionSelect.value = type;
+            xSlider.value = 50;
+            draw();
+        }
+
+        functionSelect.addEventListener('change', draw);
+        xSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

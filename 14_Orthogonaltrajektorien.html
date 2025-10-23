@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthogonaltrajektorien</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            cursor: crosshair;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .formula {
+            font-size: 16px;
+            color: #2563eb;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #229954;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Orthogonaltrajektorien</h1>
+
+        <div class="description">
+            <p><strong>Definition:</strong> Orthogonaltrajektorien sind Kurven, die eine gegebene Kurvenschar überall rechtwinklig schneiden.</p>
+            <p><strong>Konstruktion:</strong> Wenn die Kurvenschar die DGL y' = f(x, y) erfüllt, dann erfüllen die Orthogonaltrajektorien y' = -1/f(x, y)</p>
+            <p><strong>Anwendung:</strong> Strömungslinien ⊥ Äquipotentiallinien, Wärmestrom ⊥ Isothermen, E-Feld ⊥ Äquipotentiallinien</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('radial')">Radiale Geraden</button>
+            <button class="example-btn" onclick="loadExample('circles')">Konzentrische Kreise</button>
+            <button class="example-btn" onclick="loadExample('parabolas')">Parabelschar</button>
+            <button class="example-btn" onclick="loadExample('exponential')">Exponentialfunktionen</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Kurvenschar</label>
+                <select id="family">
+                    <option value="radial">Geraden durch Ursprung (y = Cx)</option>
+                    <option value="circles">Konzentrische Kreise (x² + y² = C)</option>
+                    <option value="parabolas">Parabelschar (y = Cx²)</option>
+                    <option value="exponential">Exponentialfunktionen (y = Ce^x)</option>
+                    <option value="hyperbolas">Hyperbeln (xy = C)</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 15px 0;">
+            <button onclick="clearCurves()">Kurven löschen</button>
+            <button onclick="drawAllCurves()">Alle Kurven zeigen</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb; height: 3px;"></div>
+                <span>Ursprüngliche Kurvenschar</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Orthogonaltrajektorien</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #27ae60;"></div>
+                <span>Schnittpunkte (90°)</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="800"></canvas>
+
+        <div class="formula-box">
+            <h4 style="margin-top: 0; color: #2563eb;">Differentialgleichungen:</h4>
+            <div class="formula" id="originalDGL">Original: y' = f(x, y)</div>
+            <div class="formula" id="orthogonalDGL">Orthogonal: y' = -1/f(x, y)</div>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Klicke in das Feld, um Orthogonaltrajektorien zu zeichnen.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const familySelect = document.getElementById('family');
+
+        const range = 5;
+        let orthogonalCurves = [];
+        let originalCurves = [];
+
+        const families = {
+            radial: {
+                name: 'y = Cx (Geraden durch Ursprung)',
+                original: C => x => C * x,
+                orthogonal: C => x => {
+                    if (C === 0) return 0;
+                    return -Math.sqrt(C * C - x * x);
+                },
+                dglOriginal: 'y\' = y/x',
+                dglOrthogonal: 'y\' = -x/y',
+                description: 'Radiale Geraden werden orthogonal von konzentrischen Kreisen geschnitten.',
+                numCurves: 11,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => -2 + i * 4/(this.numCurves-1));
+                }
+            },
+            circles: {
+                name: 'x² + y² = C (Konzentrische Kreise)',
+                original: C => x => Math.sqrt(Math.max(0, C - x * x)),
+                orthogonal: C => x => C * x,
+                dglOriginal: 'y\' = -x/y',
+                dglOrthogonal: 'y\' = y/x',
+                description: 'Konzentrische Kreise werden orthogonal von radialen Geraden geschnitten.',
+                numCurves: 8,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => 0.5 + i * 4/(this.numCurves-1));
+                }
+            },
+            parabolas: {
+                name: 'y = Cx² (Parabelschar)',
+                original: C => x => C * x * x,
+                orthogonal: C => x => {
+                    // y = -1/(2x) + C (nicht analytisch einfach)
+                    return -0.5 / x + C;
+                },
+                dglOriginal: 'y\' = 2y/x',
+                dglOrthogonal: 'y\' = -x/(2y)',
+                description: 'Parabelschar wird orthogonal von Hyperbel-ähnlichen Kurven geschnitten.',
+                numCurves: 9,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => -1 + i * 2/(this.numCurves-1));
+                }
+            },
+            exponential: {
+                name: 'y = Ce^x (Exponentialfunktionen)',
+                original: C => x => C * Math.exp(x),
+                orthogonal: C => x => -Math.exp(-x) + C,
+                dglOriginal: 'y\' = y',
+                dglOrthogonal: 'y\' = -1/y',
+                description: 'Exponentialfunktionen werden orthogonal von speziellen Kurven geschnitten.',
+                numCurves: 9,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => 0.2 + i * 1.6/(this.numCurves-1));
+                }
+            },
+            hyperbolas: {
+                name: 'xy = C (Hyperbeln)',
+                original: C => x => C / x,
+                orthogonal: C => x => x + C,
+                dglOriginal: 'y\' = -y/x',
+                dglOrthogonal: 'y\' = x/y',
+                description: 'Hyperbeln werden orthogonal von Parabeln geschnitten.',
+                numCurves: 11,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => -5 + i * 10/(this.numCurves-1));
+                }
+            }
+        };
+
+        function toCanvasX(x) {
+            return canvas.width / 2 + (x / range) * (canvas.width / 2 - 50);
+        }
+
+        function toCanvasY(y) {
+            return canvas.height / 2 - (y / range) * (canvas.height / 2 - 50);
+        }
+
+        function fromCanvasX(cx) {
+            return (cx - canvas.width / 2) * range / (canvas.width / 2 - 50);
+        }
+
+        function fromCanvasY(cy) {
+            return -(cy - canvas.height / 2) * range / (canvas.height / 2 - 50);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+
+            for (let i = -range; i <= range; i++) {
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(i), 0);
+                ctx.lineTo(toCanvasX(i), canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, toCanvasY(i));
+                ctx.lineTo(canvas.width, toCanvasY(i));
+                ctx.stroke();
+            }
+
+            // Achsen
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(0, toCanvasY(0));
+            ctx.lineTo(canvas.width, toCanvasY(0));
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), 0);
+            ctx.lineTo(toCanvasX(0), canvas.height);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', canvas.width - 30, toCanvasY(0) + 20);
+            ctx.fillText('y', toCanvasX(0) + 10, 20);
+        }
+
+        function drawCurve(func, xMin, xMax, color, lineWidth = 2) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 300) {
+                const y = func(x);
+                if (!isNaN(y) && isFinite(y) && Math.abs(y) < range) {
+                    const cx = toCanvasX(x);
+                    const cy = toCanvasY(y);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                } else {
+                    started = false;
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawOriginalFamily() {
+            const famKey = familySelect.value;
+            const famData = families[famKey];
+
+            const CValues = famData.getCValues();
+
+            originalCurves = [];
+
+            CValues.forEach(C => {
+                const func = famData.original(C);
+                drawCurve(func, -range, range, 'rgba(37, 99, 235, 0.5)', 1.5);
+
+                // Auch negative y-Werte für symmetrische Kurven
+                if (famKey === 'circles') {
+                    const funcNeg = C => x => -Math.sqrt(Math.max(0, C - x * x));
+                    drawCurve(funcNeg(C), -range, range, 'rgba(37, 99, 235, 0.5)', 1.5);
+                }
+
+                originalCurves.push({ func, C });
+            });
+        }
+
+        function drawOrthogonalCurve(x0, y0) {
+            const famKey = familySelect.value;
+            const famData = families[famKey];
+
+            // Bestimme C für die Orthogonaltrajektorie durch (x0, y0)
+            let C;
+            if (famKey === 'radial') {
+                C = Math.sqrt(x0 * x0 + y0 * y0);
+            } else if (famKey === 'circles') {
+                C = y0 / x0;
+            } else if (famKey === 'parabolas') {
+                C = y0 + 0.5 / x0;
+            } else if (famKey === 'exponential') {
+                C = y0 + Math.exp(-x0);
+            } else if (famKey === 'hyperbolas') {
+                C = y0 - x0;
+            }
+
+            const func = famData.orthogonal(C);
+            drawCurve(func, -range, range, '#e74c3c', 2.5);
+
+            // Markiere Startpunkt
+            ctx.fillStyle = '#27ae60';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(toCanvasX(x0), toCanvasY(y0), 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            orthogonalCurves.push({ func, C, x0, y0 });
+        }
+
+        function clearCurves() {
+            orthogonalCurves = [];
+            draw();
+        }
+
+        function drawAllCurves() {
+            clearCurves();
+            const famKey = familySelect.value;
+            const famData = families[famKey];
+
+            const positions = [
+                [-3, 1], [-2, 2], [0, 3], [2, 2], [3, 1],
+                [-3, -1], [-2, -2], [2, -2], [3, -1]
+            ];
+
+            positions.forEach(([x, y]) => {
+                if (Math.abs(x) < range && Math.abs(y) < range) {
+                    drawOrthogonalCurve(x, y);
+                }
+            });
+        }
+
+        function draw() {
+            const famKey = familySelect.value;
+            const famData = families[famKey];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+            drawOriginalFamily();
+
+            orthogonalCurves.forEach(curve => {
+                drawCurve(curve.func, -range, range, '#e74c3c', 2.5);
+
+                ctx.fillStyle = '#27ae60';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(toCanvasX(curve.x0), toCanvasY(curve.y0), 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            // Update formulas
+            document.getElementById('originalDGL').textContent = `Original: ${famData.dglOriginal}`;
+            document.getElementById('orthogonalDGL').textContent = `Orthogonal: ${famData.dglOrthogonal}`;
+
+            // Interpretation
+            const interp = document.getElementById('interpretation');
+            let text = `<strong>${famData.name}:</strong> ${famData.description}<br><br>`;
+            text += `Klicke in das Feld, um eine Orthogonaltrajektorie zu zeichnen, die die Kurvenschar rechtwinklig schneidet.<br>`;
+            text += `Die blauen Kurven sind die ursprüngliche Schar, die roten Kurven sind die Orthogonaltrajektorien.`;
+
+            interp.innerHTML = text;
+        }
+
+        function loadExample(type) {
+            familySelect.value = type;
+            clearCurves();
+            if (type === 'radial' || type === 'circles') {
+                drawAllCurves();
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+
+            const x0 = fromCanvasX(cx);
+            const y0 = fromCanvasY(cy);
+
+            if (Math.abs(x0) < range && Math.abs(y0) < range) {
+                drawOrthogonalCurve(x0, y0);
+            }
+        });
+
+        familySelect.addEventListener('change', () => {
+            clearCurves();
+        });
+
+        draw();
+    </script>
+</body>
+</html>

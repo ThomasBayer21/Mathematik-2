@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anfangswert- vs Randwertproblem</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .canvas-wrapper {
+            text-align: center;
+        }
+        .canvas-title {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            width: 100%;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .comparison-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .problem-type {
+            background: white;
+            border: 3px solid;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .awp {
+            border-color: #27ae60;
+        }
+        .rwp {
+            border-color: #e74c3c;
+        }
+        .problem-type h3 {
+            margin-top: 0;
+        }
+        .problem-type ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .problem-type li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Anfangswertproblem vs Randwertproblem</h1>
+
+        <div class="description">
+            <p><strong>Anfangswertproblem (AWP):</strong> Alle Bedingungen sind am Anfangspunkt x₀ gegeben</p>
+            <p>Beispiel: y'' + p(x)y' + q(x)y = 0, y(x₀) = y₀, y'(x₀) = y₀'</p>
+            <br>
+            <p><strong>Randwertproblem (RWP):</strong> Bedingungen sind an verschiedenen Punkten (Rändern) gegeben</p>
+            <p>Beispiel: y'' + p(x)y' + q(x)y = 0, y(a) = y_a, y(b) = y_b</p>
+        </div>
+
+        <div class="comparison-box">
+            <div class="problem-type awp">
+                <h3 style="color: #27ae60;">Anfangswertproblem (AWP)</h3>
+                <ul>
+                    <li>Alle Bedingungen an einem Punkt</li>
+                    <li>Eindeutige Lösung (meist)</li>
+                    <li>Zeitabhängige Probleme</li>
+                    <li>Vorwärtsintegration möglich</li>
+                    <li>Beispiele: Bewegung, Zerfall, Wachstum</li>
+                </ul>
+            </div>
+            <div class="problem-type rwp">
+                <h3 style="color: #e74c3c;">Randwertproblem (RWP)</h3>
+                <ul>
+                    <li>Bedingungen an mehreren Punkten</li>
+                    <li>Lösung nicht immer existent/eindeutig</li>
+                    <li>Ortsabhängige Probleme</li>
+                    <li>Iterative Verfahren nötig</li>
+                    <li>Beispiele: Balken, Saite, Wärmeleitung</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('simple')">Einfaches Beispiel</button>
+            <button class="example-btn" onclick="loadExample('oscillation')">Schwingung</button>
+            <button class="example-btn" onclick="loadExample('decay')">Zerfall mit Randbedingung</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>DGL: y'' + p·y' + q·y = 0</label>
+                <select id="equation">
+                    <option value="simple">y'' = 0 (Gerade)</option>
+                    <option value="oscillation">y'' + y = 0 (Schwingung)</option>
+                    <option value="decay">y'' - y = 0 (Exp. Wachstum)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>AWP: y(0): <span id="y0Value">1.0</span></label>
+                <input type="range" id="y0" min="-2" max="2" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>AWP: y'(0): <span id="yp0Value">0.0</span></label>
+                <input type="range" id="yp0" min="-2" max="2" step="0.1" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>RWP: y(0): <span id="yaValue">1.0</span></label>
+                <input type="range" id="ya" min="-2" max="2" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>RWP: y(5): <span id="ybValue">-1.0</span></label>
+                <input type="range" id="yb" min="-2" max="2" step="0.1" value="-1">
+            </div>
+        </div>
+
+        <div class="canvas-grid">
+            <div class="canvas-wrapper">
+                <div class="canvas-title" style="color: #27ae60;">Anfangswertproblem (AWP)</div>
+                <canvas id="canvasAWP" width="600" height="500"></canvas>
+                <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">
+                    Bedingungen: y(x₀) = y₀, y'(x₀) = y₀'
+                </p>
+            </div>
+
+            <div class="canvas-wrapper">
+                <div class="canvas-title" style="color: #e74c3c;">Randwertproblem (RWP)</div>
+                <canvas id="canvasRWP" width="600" height="500"></canvas>
+                <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">
+                    Bedingungen: y(a) = y_a, y(b) = y_b
+                </p>
+            </div>
+        </div>
+
+        <div class="info">
+            <p><strong>AWP-Lösung:</strong> y(x) = <span id="awpSolution">?</span></p>
+            <p><strong>RWP-Lösung:</strong> y(x) = <span id="rwpSolution">?</span></p>
+            <p><strong>RWP-Status:</strong> <span id="rwpStatus">?</span></p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Vergleiche die beiden Problemtypen und ihre Lösungen.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvasAWP = document.getElementById('canvasAWP');
+        const canvasRWP = document.getElementById('canvasRWP');
+        const ctxAWP = canvasAWP.getContext('2d');
+        const ctxRWP = canvasRWP.getContext('2d');
+
+        const equationSelect = document.getElementById('equation');
+        const y0Slider = document.getElementById('y0');
+        const yp0Slider = document.getElementById('yp0');
+        const yaSlider = document.getElementById('ya');
+        const ybSlider = document.getElementById('yb');
+
+        const equations = {
+            simple: {
+                name: "y'' = 0",
+                awp: (x, y0, yp0) => y0 + yp0 * x,
+                rwp: (x, ya, yb, a, b) => ya + (yb - ya) / (b - a) * (x - a),
+                hasUniqueSolution: (ya, yb, a, b) => true,
+                description: "Lineare Funktion - beide Probleme haben eindeutige Lösungen."
+            },
+            oscillation: {
+                name: "y'' + y = 0",
+                awp: (x, y0, yp0) => y0 * Math.cos(x) + yp0 * Math.sin(x),
+                rwp: (x, ya, yb, a, b) => {
+                    // y = A·cos(x) + B·sin(x)
+                    // y(a) = A·cos(a) + B·sin(a) = ya
+                    // y(b) = A·cos(b) + B·sin(b) = yb
+                    const det = Math.cos(a) * Math.sin(b) - Math.sin(a) * Math.cos(b);
+                    if (Math.abs(det) < 0.01) return null;
+                    const A = (ya * Math.sin(b) - yb * Math.sin(a)) / det;
+                    const B = (yb * Math.cos(a) - ya * Math.cos(b)) / det;
+                    return A * Math.cos(x) + B * Math.sin(x);
+                },
+                hasUniqueSolution: (ya, yb, a, b) => {
+                    const det = Math.cos(a) * Math.sin(b) - Math.sin(a) * Math.cos(b);
+                    return Math.abs(det) > 0.01;
+                },
+                description: "Schwingungsgleichung - RWP kann keine oder unendlich viele Lösungen haben!"
+            },
+            decay: {
+                name: "y'' - y = 0",
+                awp: (x, y0, yp0) => ((y0 + yp0) / 2) * Math.exp(x) + ((y0 - yp0) / 2) * Math.exp(-x),
+                rwp: (x, ya, yb, a, b) => {
+                    // y = A·e^x + B·e^(-x)
+                    const ea = Math.exp(a);
+                    const eb = Math.exp(b);
+                    const ema = Math.exp(-a);
+                    const emb = Math.exp(-b);
+                    const det = ea * emb - ema * eb;
+                    if (Math.abs(det) < 0.01) return null;
+                    const A = (ya * emb - yb * ema) / det;
+                    const B = (yb * ea - ya * eb) / det;
+                    return A * Math.exp(x) + B * Math.exp(-x);
+                },
+                hasUniqueSolution: (ya, yb, a, b) => {
+                    const ea = Math.exp(a);
+                    const eb = Math.exp(b);
+                    const ema = Math.exp(-a);
+                    const emb = Math.exp(-b);
+                    const det = ea * emb - ema * eb;
+                    return Math.abs(det) > 0.01;
+                },
+                description: "Exponentialgleichung - RWP hat eindeutige Lösung (meist)."
+            }
+        };
+
+        function toCanvasX(x, xMin, xMax, canvas) {
+            const padding = 50;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - xMin) / (xMax - xMin) * width;
+        }
+
+        function toCanvasY(y, yMin, yMax, canvas) {
+            const padding = 40;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - yMin) / (yMax - yMin) * height;
+        }
+
+        function drawAxes(ctx, xMin, xMax, yMin, yMax) {
+            const canvas = ctx.canvas;
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(xMin, xMin, xMax, canvas), toCanvasY(0, yMin, yMax, canvas));
+            ctx.lineTo(toCanvasX(xMax, xMin, xMax, canvas), toCanvasY(0, yMin, yMax, canvas));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, xMin, xMax, canvas), toCanvasY(yMin, yMin, yMax, canvas));
+            ctx.lineTo(toCanvasX(0, xMin, xMax, canvas), toCanvasY(yMax, yMin, yMax, canvas));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(xMax, xMin, xMax, canvas) + 10, toCanvasY(0, yMin, yMax, canvas) + 5);
+            ctx.fillText('y', toCanvasX(0, xMin, xMax, canvas) + 10, toCanvasY(yMax, yMin, yMax, canvas) - 10);
+        }
+
+        function drawFunction(ctx, func, xMin, xMax, yMin, yMax, color) {
+            const canvas = ctx.canvas;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 500) {
+                const y = func(x);
+                if (y !== null && !isNaN(y) && isFinite(y) && y >= yMin && y <= yMax) {
+                    const cx = toCanvasX(x, xMin, xMax, canvas);
+                    const cy = toCanvasY(y, yMin, yMax, canvas);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                } else {
+                    started = false;
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawPoint(ctx, x, y, xMin, xMax, yMin, yMax, color, label) {
+            const canvas = ctx.canvas;
+            const cx = toCanvasX(x, xMin, xMax, canvas);
+            const cy = toCanvasY(y, yMin, yMax, canvas);
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = color;
+            ctx.font = 'bold 13px Arial';
+            ctx.fillText(label, cx + 12, cy - 10);
+        }
+
+        function drawTangent(ctx, x0, y0, slope, xMin, xMax, yMin, yMax, color) {
+            const canvas = ctx.canvas;
+            const dx = (xMax - xMin) * 0.3;
+            const x1 = x0 - dx;
+            const x2 = x0 + dx;
+            const y1 = y0 + slope * (x1 - x0);
+            const y2 = y0 + slope * (x2 - x0);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x1, xMin, xMax, canvas), toCanvasY(y1, yMin, yMax, canvas));
+            ctx.lineTo(toCanvasX(x2, xMin, xMax, canvas), toCanvasY(y2, yMin, yMax, canvas));
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function draw() {
+            const eqKey = equationSelect.value;
+            const eqData = equations[eqKey];
+
+            const y0 = parseFloat(y0Slider.value);
+            const yp0 = parseFloat(yp0Slider.value);
+            const ya = parseFloat(yaSlider.value);
+            const yb = parseFloat(ybSlider.value);
+
+            document.getElementById('y0Value').textContent = y0.toFixed(1);
+            document.getElementById('yp0Value').textContent = yp0.toFixed(1);
+            document.getElementById('yaValue').textContent = ya.toFixed(1);
+            document.getElementById('ybValue').textContent = yb.toFixed(1);
+
+            const xMin = 0;
+            const xMax = 5;
+            const yMin = -3;
+            const yMax = 3;
+
+            // AWP zeichnen
+            ctxAWP.clearRect(0, 0, canvasAWP.width, canvasAWP.height);
+            drawAxes(ctxAWP, xMin, xMax, yMin, yMax);
+
+            const awpFunc = x => eqData.awp(x, y0, yp0);
+            drawFunction(ctxAWP, awpFunc, xMin, xMax, yMin, yMax, '#27ae60');
+            drawPoint(ctxAWP, 0, y0, xMin, xMax, yMin, yMax, '#27ae60', 'y(0) = ' + y0.toFixed(1));
+            drawTangent(ctxAWP, 0, y0, yp0, xMin, xMax, yMin, yMax, '#27ae60');
+
+            // RWP zeichnen
+            ctxRWP.clearRect(0, 0, canvasRWP.width, canvasRWP.height);
+            drawAxes(ctxRWP, xMin, xMax, yMin, yMax);
+
+            const rwpFunc = x => eqData.rwp(x, ya, yb, 0, 5);
+            const hasUnique = eqData.hasUniqueSolution(ya, yb, 0, 5);
+
+            if (hasUnique) {
+                drawFunction(ctxRWP, rwpFunc, xMin, xMax, yMin, yMax, '#e74c3c');
+                document.getElementById('rwpStatus').textContent = 'Eindeutige Lösung existiert';
+                document.getElementById('rwpStatus').style.color = '#27ae60';
+            } else {
+                document.getElementById('rwpStatus').textContent = 'Keine eindeutige Lösung!';
+                document.getElementById('rwpStatus').style.color = '#e74c3c';
+            }
+
+            drawPoint(ctxRWP, 0, ya, xMin, xMax, yMin, yMax, '#e74c3c', 'y(0) = ' + ya.toFixed(1));
+            drawPoint(ctxRWP, 5, yb, xMin, xMax, yMin, yMax, '#e74c3c', 'y(5) = ' + yb.toFixed(1));
+
+            // Update Info
+            document.getElementById('awpSolution').textContent = `Eindeutig bestimmt durch y(0) und y'(0)`;
+
+            if (hasUnique) {
+                document.getElementById('rwpSolution').textContent = `Eindeutig bestimmt durch y(0) und y(5)`;
+            } else {
+                document.getElementById('rwpSolution').textContent = `Keine oder unendlich viele Lösungen`;
+            }
+
+            // Interpretation
+            const interp = document.getElementById('interpretation');
+            let text = `<strong>${eqData.name}:</strong> ${eqData.description}<br><br>`;
+
+            text += `<strong>AWP:</strong> Die Lösung startet bei x=0 mit Wert y(0)=${y0.toFixed(1)} und Steigung y'(0)=${yp0.toFixed(1)}. `;
+            text += `Dies bestimmt die Lösung eindeutig für alle x ≥ 0.<br><br>`;
+
+            text += `<strong>RWP:</strong> Die Lösung muss durch die Punkte (0, ${ya.toFixed(1)}) und (5, ${yb.toFixed(1)}) gehen. `;
+
+            if (hasUnique) {
+                text += `Es existiert genau eine Lösung, die beide Randbedingungen erfüllt.`;
+            } else {
+                text += `<strong style="color: #e74c3c;">Problem:</strong> Mit diesen Randbedingungen existiert keine eindeutige Lösung!`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'simple':
+                    equationSelect.value = 'simple';
+                    y0Slider.value = 1;
+                    yp0Slider.value = 0.5;
+                    yaSlider.value = 1;
+                    ybSlider.value = -1;
+                    break;
+                case 'oscillation':
+                    equationSelect.value = 'oscillation';
+                    y0Slider.value = 1;
+                    yp0Slider.value = 0;
+                    yaSlider.value = 1;
+                    ybSlider.value = 1;
+                    break;
+                case 'decay':
+                    equationSelect.value = 'decay';
+                    y0Slider.value = 1;
+                    yp0Slider.value = 0;
+                    yaSlider.value = 1;
+                    ybSlider.value = 0.5;
+                    break;
+            }
+            draw();
+        }
+
+        equationSelect.addEventListener('change', draw);
+        y0Slider.addEventListener('input', draw);
+        yp0Slider.addEventListener('input', draw);
+        yaSlider.addEventListener('input', draw);
+        ybSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

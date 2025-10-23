@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier-Reihen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            width: 100%;
+            background: white;
+        }
+        .canvas-title {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .formula {
+            font-size: 15px;
+            color: #2563eb;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .coefficients-display {
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        .coeff-item {
+            margin: 3px 0;
+            padding: 3px;
+            color: #475569;
+        }
+        .gibbs-warning {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .gibbs-warning h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fourier-Reihen</h1>
+
+        <div class="description">
+            <p><strong>Fourier-Reihe:</strong> Jede periodische Funktion kann als Summe von Sinus- und Kosinus-Wellen dargestellt werden.</p>
+            <p><strong>Formel:</strong> f(x) = a₀/2 + ∑<sub>n=1</sub><sup>∞</sup> [a<sub>n</sub>·cos(nx) + b<sub>n</sub>·sin(nx)]</p>
+            <p>Koeffizienten: a<sub>n</sub> = (1/π)∫<sub>-π</sub><sup>π</sup> f(x)cos(nx) dx,
+               b<sub>n</sub> = (1/π)∫<sub>-π</sub><sup>π</sup> f(x)sin(nx) dx</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('square')">Rechteckwelle</button>
+            <button class="example-btn" onclick="loadExample('sawtooth')">Sägezahn</button>
+            <button class="example-btn" onclick="loadExample('triangle')">Dreieckswelle</button>
+            <button class="example-btn" onclick="loadExample('half')">Halbwelle</button>
+            <button class="example-btn" onclick="loadExample('parabola')">Parabel (periodisch)</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion</label>
+                <select id="function">
+                    <option value="square">Rechteckwelle</option>
+                    <option value="sawtooth">Sägezahn</option>
+                    <option value="triangle">Dreieckswelle</option>
+                    <option value="half">Halbwelle (Gleichrichter)</option>
+                    <option value="parabola">Parabel (periodisch)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Harmonische n: <span id="nValue">5</span></label>
+                <input type="range" id="n" min="1" max="50" value="5">
+            </div>
+
+            <div class="control-group">
+                <label>Periode T: <span id="periodValue">2π</span></label>
+                <input type="range" id="period" min="1" max="4" step="0.5" value="2">
+            </div>
+
+            <div class="control-group">
+                <label>Verschiebung x₀: <span id="shiftValue">0.0</span></label>
+                <input type="range" id="shift" min="-3" max="3" step="0.1" value="0">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Ursprüngliche Funktion</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb; height: 3px;"></div>
+                <span>Fourier-Approximation</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 204, 113, 0.3); height: 3px;"></div>
+                <span>Einzelne Harmonische</span>
+            </div>
+        </div>
+
+        <div class="canvas-grid">
+            <div>
+                <div class="canvas-title">Funktion und Fourier-Approximation</div>
+                <canvas id="canvas" width="800" height="500"></canvas>
+            </div>
+            <div>
+                <div class="canvas-title">Fourier-Koeffizienten</div>
+                <canvas id="spectrumCanvas" width="350" height="500"></canvas>
+            </div>
+        </div>
+
+        <div class="gibbs-warning" id="gibbsWarning" style="display: none;">
+            <h4>Gibbsches Phänomen</h4>
+            <p>Bei Funktionen mit Sprungstellen (wie der Rechteckwelle) überschwingt die Fourier-Approximation an den Unstetigkeiten um etwa 9%.
+               Dieses "Überschwingen" verschwindet nicht, egal wie viele Terme hinzugefügt werden!</p>
+        </div>
+
+        <div class="formula-box">
+            <h4 style="margin-top: 0; color: #2563eb;">Fourier-Reihe:</h4>
+            <div class="formula" id="fourierFormula"></div>
+            <div style="margin-top: 10px; font-size: 13px; color: #64748b;">
+                <strong>Komplexe Form:</strong> f(x) = ∑ c<sub>n</sub>·e<sup>inx</sup>, wobei c<sub>n</sub> = (a<sub>n</sub> - ib<sub>n</sub>)/2
+            </div>
+        </div>
+
+        <div class="info">
+            <p><strong>Anzahl Harmonische:</strong> <span id="nTerms">0</span></p>
+            <p><strong>Periode:</strong> <span id="periodInfo">0</span></p>
+            <p><strong>Fundamentalfrequenz:</strong> ω₀ = 2π/T = <span id="omega0">0</span></p>
+        </div>
+
+        <div class="info">
+            <h4 style="margin-top: 0;">Koeffizienten a<sub>n</sub> und b<sub>n</sub>:</h4>
+            <div class="coefficients-display" id="coeffDisplay"></div>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle eine periodische Funktion und beobachte, wie sie durch Sinus- und Kosinus-Wellen approximiert wird.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const spectrumCanvas = document.getElementById('spectrumCanvas');
+        const spectrumCtx = spectrumCanvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+        const periodSlider = document.getElementById('period');
+        const periodValue = document.getElementById('periodValue');
+        const shiftSlider = document.getElementById('shift');
+        const shiftValue = document.getElementById('shiftValue');
+
+        const functions = {
+            square: {
+                f: x => {
+                    const mod = ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    return mod < Math.PI ? 1 : -1;
+                },
+                name: 'Rechteckwelle',
+                a0: 0,
+                an: n => 0,
+                bn: n => n % 2 === 1 ? 4 / (n * Math.PI) : 0,
+                hasGibbs: true,
+                description: 'Rechteckwelle zeigt das Gibbsche Phänomen deutlich. Nur ungerade Harmonische (sin) treten auf.'
+            },
+            sawtooth: {
+                f: x => {
+                    const mod = ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    return (mod / Math.PI) - 1;
+                },
+                name: 'Sägezahn',
+                a0: 0,
+                an: n => 0,
+                bn: n => -2 / (n * Math.PI) * Math.pow(-1, n),
+                hasGibbs: true,
+                description: 'Sägezahnwelle: Alle Harmonische treten auf mit alternierenden Vorzeichen.'
+            },
+            triangle: {
+                f: x => {
+                    const mod = ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    if (mod < Math.PI / 2) return 2 * mod / Math.PI;
+                    if (mod < 3 * Math.PI / 2) return 2 - 2 * mod / Math.PI;
+                    return 2 * mod / Math.PI - 4;
+                },
+                name: 'Dreieckswelle',
+                a0: 0,
+                an: n => n % 2 === 1 ? 8 / (Math.PI * Math.PI * n * n) * Math.pow(-1, (n - 1) / 2) : 0,
+                bn: n => 0,
+                hasGibbs: false,
+                description: 'Dreieckswelle: Nur ungerade Harmonische (cos), mit 1/n² Abfall (schnelle Konvergenz).'
+            },
+            half: {
+                f: x => {
+                    const mod = ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    return mod < Math.PI ? Math.sin(mod) : 0;
+                },
+                name: 'Halbwellen-Gleichrichter',
+                a0: 1 / Math.PI,
+                an: n => n === 1 ? 0.5 : (n % 2 === 0 ? -2 / (Math.PI * (n * n - 1)) : 0),
+                bn: n => n === 1 ? 0.5 : 0,
+                hasGibbs: true,
+                description: 'Halbwelle: Simuliert einen Gleichrichter. Enthält DC-Anteil (a₀) und alle Harmonischen.'
+            },
+            parabola: {
+                f: x => {
+                    const mod = ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    const centered = mod - Math.PI;
+                    return centered * centered;
+                },
+                name: 'Periodische Parabel',
+                a0: Math.PI * Math.PI / 3,
+                an: n => 4 / (n * n) * Math.pow(-1, n),
+                bn: n => 0,
+                hasGibbs: false,
+                description: 'Parabel: Stetig und glatt → sehr schnelle Konvergenz mit 1/n². Nur Kosinus-Terme.'
+            }
+        };
+
+        function evaluateFourier(funcData, x, n, omega0, shift) {
+            let sum = funcData.a0 / 2;
+
+            for (let k = 1; k <= n; k++) {
+                const arg = k * omega0 * (x - shift);
+                sum += funcData.an(k) * Math.cos(arg);
+                sum += funcData.bn(k) * Math.sin(arg);
+            }
+
+            return sum;
+        }
+
+        function toCanvasX(x, xMin, xMax, canvas) {
+            const padding = 50;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - xMin) / (xMax - xMin) * width;
+        }
+
+        function toCanvasY(y, yMin, yMax, canvas) {
+            const padding = 40;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - yMin) / (yMax - yMin) * height;
+        }
+
+        function drawAxes(ctx, xMin, xMax, yMin, yMax) {
+            const canvas = ctx.canvas;
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(xMin, xMin, xMax, canvas), toCanvasY(0, yMin, yMax, canvas));
+            ctx.lineTo(toCanvasX(xMax, xMin, xMax, canvas), toCanvasY(0, yMin, yMax, canvas));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, xMin, xMax, canvas), toCanvasY(yMin, yMin, yMax, canvas));
+            ctx.lineTo(toCanvasX(0, xMin, xMax, canvas), toCanvasY(yMax, yMin, yMax, canvas));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.fillText('x', toCanvasX(xMax, xMin, xMax, canvas) + 10, toCanvasY(0, yMin, yMax, canvas) + 5);
+
+            // Markierungen
+            for (let i = -2; i <= 2; i++) {
+                if (i !== 0) {
+                    const x = i * Math.PI;
+                    ctx.fillText(`${i}π`, toCanvasX(x, xMin, xMax, canvas) - 10, toCanvasY(0, yMin, yMax, canvas) + 20);
+                }
+            }
+        }
+
+        function drawFunction(ctx, func, xMin, xMax, yMin, yMax, color, lineWidth = 2) {
+            const canvas = ctx.canvas;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 1000) {
+                const y = func(x);
+                if (!isNaN(y) && isFinite(y)) {
+                    const cx = toCanvasX(x, xMin, xMax, canvas);
+                    const cy = toCanvasY(y, yMin, yMax, canvas);
+
+                    if (!started) {
+                        ctx.moveTo(cx, cy);
+                        started = true;
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawSpectrum(funcData, n) {
+            const canvas = spectrumCanvas;
+            spectrumCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const maxCoeff = Math.max(
+                Math.abs(funcData.a0),
+                ...Array.from({ length: n }, (_, i) => Math.max(Math.abs(funcData.an(i + 1)), Math.abs(funcData.bn(i + 1))))
+            );
+
+            const barWidth = (canvas.width - 60) / (n + 1);
+            const maxHeight = canvas.height - 80;
+
+            // Achsen
+            spectrumCtx.strokeStyle = '#2c3e50';
+            spectrumCtx.lineWidth = 2;
+            spectrumCtx.beginPath();
+            spectrumCtx.moveTo(40, canvas.height - 40);
+            spectrumCtx.lineTo(canvas.width - 20, canvas.height - 40);
+            spectrumCtx.stroke();
+
+            spectrumCtx.fillStyle = '#2c3e50';
+            spectrumCtx.font = '11px Arial';
+            spectrumCtx.fillText('n', canvas.width - 30, canvas.height - 25);
+
+            // DC-Komponente (a0)
+            const a0Height = (Math.abs(funcData.a0 / 2) / maxCoeff) * maxHeight;
+            spectrumCtx.fillStyle = '#f39c12';
+            spectrumCtx.fillRect(40, canvas.height - 40 - a0Height, barWidth * 0.8, a0Height);
+            spectrumCtx.fillStyle = '#2c3e50';
+            spectrumCtx.fillText('0', 40 + barWidth * 0.3, canvas.height - 25);
+
+            // Harmonische
+            for (let i = 1; i <= n; i++) {
+                const an = funcData.an(i);
+                const bn = funcData.bn(i);
+                const magnitude = Math.sqrt(an * an + bn * bn);
+                const barHeight = (magnitude / maxCoeff) * maxHeight;
+
+                const x = 40 + i * barWidth;
+
+                // Kosinus-Komponente
+                if (Math.abs(an) > 0.001) {
+                    const anHeight = (Math.abs(an) / maxCoeff) * maxHeight;
+                    spectrumCtx.fillStyle = 'rgba(231, 76, 60, 0.7)';
+                    spectrumCtx.fillRect(x, canvas.height - 40 - anHeight, barWidth * 0.4, anHeight);
+                }
+
+                // Sinus-Komponente
+                if (Math.abs(bn) > 0.001) {
+                    const bnHeight = (Math.abs(bn) / maxCoeff) * maxHeight;
+                    spectrumCtx.fillStyle = 'rgba(37, 99, 235, 0.7)';
+                    spectrumCtx.fillRect(x + barWidth * 0.4, canvas.height - 40 - bnHeight, barWidth * 0.4, bnHeight);
+                }
+
+                // Label
+                if (i % 5 === 0 || i === 1) {
+                    spectrumCtx.fillStyle = '#2c3e50';
+                    spectrumCtx.fillText(i.toString(), x + barWidth * 0.2, canvas.height - 25);
+                }
+            }
+
+            // Legende
+            spectrumCtx.fillStyle = '#e74c3c';
+            spectrumCtx.fillRect(50, 10, 15, 15);
+            spectrumCtx.fillStyle = '#2c3e50';
+            spectrumCtx.font = '11px Arial';
+            spectrumCtx.fillText('cos (a_n)', 70, 22);
+
+            spectrumCtx.fillStyle = '#2563eb';
+            spectrumCtx.fillRect(50, 30, 15, 15);
+            spectrumCtx.fillStyle = '#2c3e50';
+            spectrumCtx.fillText('sin (b_n)', 70, 42);
+        }
+
+        function displayCoefficients(funcData, n) {
+            const coeffDiv = document.getElementById('coeffDisplay');
+            let html = '<div class="coeff-item"><strong>a₀/2 = ' + (funcData.a0 / 2).toFixed(4) + '</strong></div>';
+
+            for (let i = 1; i <= Math.min(n, 20); i++) {
+                const an = funcData.an(i);
+                const bn = funcData.bn(i);
+
+                if (Math.abs(an) > 0.0001 || Math.abs(bn) > 0.0001) {
+                    html += `<div class="coeff-item">n=${i}: a${i} = ${an.toFixed(4)}, b${i} = ${bn.toFixed(4)}</div>`;
+                }
+            }
+
+            if (n > 20) {
+                html += '<div class="coeff-item">... (weitere Terme)</div>';
+            }
+
+            coeffDiv.innerHTML = html;
+        }
+
+        function updateInterpretation(funcData, n) {
+            const interp = document.getElementById('interpretation');
+
+            let text = `<strong>${funcData.name}:</strong> ${funcData.description}<br><br>`;
+
+            text += `Mit <strong>${n} Harmonischen</strong> approximieren wir die Funktion. `;
+
+            if (n < 5) {
+                text += `Die Approximation ist noch grob - nur die Grundform ist erkennbar.`;
+            } else if (n < 15) {
+                text += `Gute Approximation! Die wichtigsten Frequenzkomponenten sind erfasst.`;
+            } else {
+                text += `Sehr gute Approximation mit ${n} Harmonischen!`;
+            }
+
+            if (funcData.hasGibbs) {
+                text += `<br><br><strong>Beachte:</strong> Das Gibbsche Phänomen ist an den Sprungstellen sichtbar (ca. 9% Überschwingen).`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const n = parseInt(nSlider.value);
+            const periodFactor = parseFloat(periodSlider.value);
+            const shift = parseFloat(shiftSlider.value);
+
+            nValue.textContent = n;
+            periodValue.textContent = periodFactor === 2 ? '2π' : (periodFactor * Math.PI).toFixed(2);
+            shiftValue.textContent = shift.toFixed(1);
+
+            // Berechne Fundamentalfrequenz ω₀ = 2π/T
+            const T = periodFactor * Math.PI;
+            const omega0 = (2 * Math.PI) / T;
+
+            const xMin = -2 * Math.PI;
+            const xMax = 2 * Math.PI;
+            const yMin = -2;
+            const yMax = 4;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes(ctx, xMin, xMax, yMin, yMax);
+
+            // Originalfunktion (mit Periode und Verschiebung)
+            const originalFunc = x => funcData.f(omega0 * (x - shift));
+            drawFunction(ctx, originalFunc, xMin, xMax, yMin, yMax, '#e74c3c', 2);
+
+            // Fourier-Approximation
+            const fourierFunc = x => evaluateFourier(funcData, x, n, omega0, shift);
+            drawFunction(ctx, fourierFunc, xMin, xMax, yMin, yMax, '#2563eb', 3);
+
+            // Spektrum
+            drawSpectrum(funcData, n);
+
+            // Koeffizienten
+            displayCoefficients(funcData, n);
+
+            // Update Info
+            document.getElementById('nTerms').textContent = n;
+            document.getElementById('periodInfo').textContent = periodValue.textContent;
+            document.getElementById('omega0').textContent = omega0.toFixed(3);
+
+            // Fourier-Formel
+            document.getElementById('fourierFormula').textContent =
+                `f(x) = ${(funcData.a0 / 2).toFixed(3)} + Σ(n=1 to ${n}) [a_n·cos(nx) + b_n·sin(nx)]`;
+
+            // Gibbs-Warnung
+            const gibbsWarning = document.getElementById('gibbsWarning');
+            gibbsWarning.style.display = funcData.hasGibbs ? 'block' : 'none';
+
+            updateInterpretation(funcData, n);
+        }
+
+        function loadExample(type) {
+            functionSelect.value = type;
+            nSlider.value = type === 'square' ? 15 : 10;
+            periodSlider.value = 2;
+            draw();
+        }
+
+        functionSelect.addEventListener('change', draw);
+        nSlider.addEventListener('input', draw);
+        periodSlider.addEventListener('input', draw);
+        shiftSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

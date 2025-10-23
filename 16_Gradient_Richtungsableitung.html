@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient und Richtungsableitung</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            cursor: crosshair;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .formula {
+            font-size: 16px;
+            color: #2563eb;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gradient und Richtungsableitung</h1>
+
+        <div class="description">
+            <p><strong>Gradient:</strong> ∇f = (∂f/∂x, ∂f/∂y) zeigt in Richtung des steilsten Anstiegs</p>
+            <p><strong>Richtungsableitung:</strong> D<sub>v</sub>f = ∇f · v̂ gibt die Änderungsrate in Richtung v</p>
+            <p><strong>Eigenschaften:</strong> ∇f ⊥ Höhenlinien, |∇f| = maximale Änderungsrate</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('paraboloid')">Paraboloid</button>
+            <button class="example-btn" onclick="loadExample('saddle')">Sattel</button>
+            <button class="example-btn" onclick="loadExample('gaussian')">Gauß-Glocke</button>
+            <button class="example-btn" onclick="loadExample('waves')">Wellen</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion z = f(x, y)</label>
+                <select id="function">
+                    <option value="paraboloid">f(x,y) = x² + y²</option>
+                    <option value="saddle">f(x,y) = x² - y²</option>
+                    <option value="gaussian">f(x,y) = e^(-(x²+y²))</option>
+                    <option value="waves">f(x,y) = sin(x)·cos(y)</option>
+                    <option value="asymmetric">f(x,y) = x² + 2y²</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: linear-gradient(to right, blue, green, yellow, red);"></div>
+                <span>Höhenlinien (niedrig → hoch)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Gradientvektoren ∇f</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb;"></div>
+                <span>Ausgewählter Punkt</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="800"></canvas>
+
+        <div class="formula-box">
+            <h4 style="margin-top: 0; color: #2563eb;">Partielle Ableitungen:</h4>
+            <div class="formula" id="partialX">∂f/∂x = ?</div>
+            <div class="formula" id="partialY">∂f/∂y = ?</div>
+            <div class="formula" id="gradient">∇f = (?, ?)</div>
+        </div>
+
+        <div class="info">
+            <p><strong>Punkt:</strong> (<span id="pointX">0</span>, <span id="pointY">0</span>)</p>
+            <p><strong>Funktionswert:</strong> f = <span id="funcValue">0</span></p>
+            <p><strong>Gradient:</strong> ∇f = (<span id="gradX">0</span>, <span id="gradY">0</span>)</p>
+            <p><strong>Betrag:</strong> |∇f| = <span id="gradMag">0</span> (steilster Anstieg)</p>
+            <p><strong>Richtung:</strong> <span id="gradAngle">0</span>° vom pos. x-Achse</p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Klicke in das Feld, um den Gradienten an verschiedenen Punkten zu sehen.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+
+        const range = 3;
+        let selectedPoint = { x: 1, y: 1 };
+
+        const functions = {
+            paraboloid: {
+                f: (x, y) => x * x + y * y,
+                fx: (x, y) => 2 * x,
+                fy: (x, y) => 2 * y,
+                name: 'f(x,y) = x² + y²',
+                fxStr: '∂f/∂x = 2x',
+                fyStr: '∂f/∂y = 2y',
+                description: 'Paraboloid: Gradient zeigt radial nach außen, Betrag wächst linear mit Abstand vom Ursprung.'
+            },
+            saddle: {
+                f: (x, y) => x * x - y * y,
+                fx: (x, y) => 2 * x,
+                fy: (x, y) => -2 * y,
+                name: 'f(x,y) = x² - y²',
+                fxStr: '∂f/∂x = 2x',
+                fyStr: '∂f/∂y = -2y',
+                description: 'Sattel: Gradient zeigt entlang der x-Achse nach außen, entlang y-Achse nach innen.'
+            },
+            gaussian: {
+                f: (x, y) => Math.exp(-(x * x + y * y)),
+                fx: (x, y) => -2 * x * Math.exp(-(x * x + y * y)),
+                fy: (x, y) => -2 * y * Math.exp(-(x * x + y * y)),
+                name: 'f(x,y) = e^(-(x²+y²))',
+                fxStr: '∂f/∂x = -2x·e^(-(x²+y²))',
+                fyStr: '∂f/∂y = -2y·e^(-(x²+y²))',
+                description: 'Gauß-Glocke: Gradient zeigt radial zum Maximum bei (0,0). Stärkster Anstieg bei r ≈ 1/√2.'
+            },
+            waves: {
+                f: (x, y) => Math.sin(x) * Math.cos(y),
+                fx: (x, y) => Math.cos(x) * Math.cos(y),
+                fy: (x, y) => -Math.sin(x) * Math.sin(y),
+                name: 'f(x,y) = sin(x)·cos(y)',
+                fxStr: '∂f/∂x = cos(x)·cos(y)',
+                fyStr: '∂f/∂y = -sin(x)·sin(y)',
+                description: 'Wellen: Gradient zeigt zu Bergen hin, von Tälern weg. Periodisches Muster.'
+            },
+            asymmetric: {
+                f: (x, y) => x * x + 2 * y * y,
+                fx: (x, y) => 2 * x,
+                fy: (x, y) => 4 * y,
+                name: 'f(x,y) = x² + 2y²',
+                fxStr: '∂f/∂x = 2x',
+                fyStr: '∂f/∂y = 4y',
+                description: 'Elliptisches Paraboloid: Gradient ist in y-Richtung doppelt so stark wie in x-Richtung.'
+            }
+        };
+
+        function toCanvasX(x) {
+            const padding = 50;
+            return padding + ((x + range) / (2 * range)) * (canvas.width - 2 * padding);
+        }
+
+        function toCanvasY(y) {
+            const padding = 50;
+            return canvas.height - padding - ((y + range) / (2 * range)) * (canvas.height - 2 * padding);
+        }
+
+        function fromCanvasX(cx) {
+            const padding = 50;
+            return ((cx - padding) / (canvas.width - 2 * padding)) * (2 * range) - range;
+        }
+
+        function fromCanvasY(cy) {
+            const padding = 50;
+            return -((cy - (canvas.height - padding)) / (canvas.height - 2 * padding)) * (2 * range) - range;
+        }
+
+        function getColor(value, min, max) {
+            const normalized = (value - min) / (max - min);
+
+            if (normalized < 0.25) {
+                const t = normalized / 0.25;
+                return `rgb(0, 0, ${Math.floor(155 + t * 100)})`;
+            } else if (normalized < 0.5) {
+                const t = (normalized - 0.25) / 0.25;
+                return `rgb(0, ${Math.floor(t * 255)}, ${Math.floor(255 * (1 - t))})`;
+            } else if (normalized < 0.75) {
+                const t = (normalized - 0.5) / 0.25;
+                return `rgb(${Math.floor(t * 255)}, 255, 0)`;
+            } else {
+                const t = (normalized - 0.75) / 0.25;
+                return `rgb(255, ${Math.floor(255 * (1 - t))}, 0)`;
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+
+            for (let i = -range; i <= range; i++) {
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(i), toCanvasY(-range));
+                ctx.lineTo(toCanvasX(i), toCanvasY(range));
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(-range), toCanvasY(i));
+                ctx.lineTo(toCanvasX(range), toCanvasY(i));
+                ctx.stroke();
+            }
+
+            // Achsen
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(-range), toCanvasY(0));
+            ctx.lineTo(toCanvasX(range), toCanvasY(0));
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), toCanvasY(-range));
+            ctx.lineTo(toCanvasX(0), toCanvasY(range));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(range) + 10, toCanvasY(0) + 5);
+            ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(range) - 10);
+        }
+
+        function drawContours(func) {
+            const resolution = 150;
+
+            let minZ = Infinity;
+            let maxZ = -Infinity;
+
+            for (let i = 0; i <= resolution; i++) {
+                for (let j = 0; j <= resolution; j++) {
+                    const x = -range + (2 * range * i) / resolution;
+                    const y = -range + (2 * range * j) / resolution;
+                    const z = func(x, y);
+                    if (isFinite(z)) {
+                        minZ = Math.min(minZ, z);
+                        maxZ = Math.max(maxZ, z);
+                    }
+                }
+            }
+
+            const nContours = 15;
+            for (let c = 0; c < nContours; c++) {
+                const level = minZ + (c / (nContours - 1)) * (maxZ - minZ);
+                const color = getColor(level, minZ, maxZ);
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+
+                for (let i = 0; i < resolution; i++) {
+                    for (let j = 0; j < resolution; j++) {
+                        const x1 = -range + (2 * range * i) / resolution;
+                        const y1 = -range + (2 * range * j) / resolution;
+                        const x2 = -range + (2 * range * (i + 1)) / resolution;
+                        const y2 = -range + (2 * range * (j + 1)) / resolution;
+
+                        const z11 = func(x1, y1);
+                        const z12 = func(x1, y2);
+                        const z21 = func(x2, y1);
+                        const z22 = func(x2, y2);
+
+                        if (isFinite(z11) && isFinite(z12) && isFinite(z21) && isFinite(z22)) {
+                            if ((z11 <= level && level <= z22) || (z22 <= level && level <= z11) ||
+                                (z12 <= level && level <= z21) || (z21 <= level && level <= z12)) {
+                                const xc = (x1 + x2) / 2;
+                                const yc = (y1 + y2) / 2;
+                                const zc = func(xc, yc);
+
+                                if (Math.abs(zc - level) < 0.08) {
+                                    ctx.fillStyle = color;
+                                    ctx.fillRect(toCanvasX(xc) - 1, toCanvasY(yc) - 1, 2, 2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawGradientField(funcData) {
+            const step = 0.5;
+            const arrowLength = 40;
+
+            for (let x = -range; x <= range; x += step) {
+                for (let y = -range; y <= range; y += step) {
+                    const fx = funcData.fx(x, y);
+                    const fy = funcData.fy(x, y);
+
+                    const magnitude = Math.sqrt(fx * fx + fy * fy);
+                    if (magnitude < 0.01) continue;
+
+                    const scale = arrowLength / (magnitude + 1);
+                    const dx = fx * scale;
+                    const dy = fy * scale;
+
+                    const cx = toCanvasX(x);
+                    const cy = toCanvasY(y);
+
+                    // Pfeil
+                    ctx.strokeStyle = 'rgba(231, 76, 60, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + dx, cy - dy);
+                    ctx.stroke();
+
+                    // Pfeilspitze
+                    const angle = Math.atan2(-dy, dx);
+                    const headlen = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(cx + dx, cy - dy);
+                    ctx.lineTo(
+                        cx + dx - headlen * Math.cos(angle - Math.PI / 6),
+                        cy - dy + headlen * Math.sin(angle - Math.PI / 6)
+                    );
+                    ctx.lineTo(
+                        cx + dx - headlen * Math.cos(angle + Math.PI / 6),
+                        cy - dy + headlen * Math.sin(angle + Math.PI / 6)
+                    );
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.6)';
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawSelectedPoint(funcData) {
+            const { x, y } = selectedPoint;
+            const fx = funcData.fx(x, y);
+            const fy = funcData.fy(x, y);
+            const fVal = funcData.f(x, y);
+            const magnitude = Math.sqrt(fx * fx + fy * fy);
+
+            // Punkt
+            ctx.fillStyle = '#2563eb';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(toCanvasX(x), toCanvasY(y), 10, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Großer Gradientvektor
+            const scale = 80;
+            const dx = fx * scale;
+            const dy = fy * scale;
+
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x), toCanvasY(y));
+            ctx.lineTo(toCanvasX(x) + dx, toCanvasY(y) - dy);
+            ctx.stroke();
+
+            // Pfeilspitze
+            const angle = Math.atan2(-dy, dx);
+            const headlen = 12;
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x) + dx, toCanvasY(y) - dy);
+            ctx.lineTo(
+                toCanvasX(x) + dx - headlen * Math.cos(angle - Math.PI / 6),
+                toCanvasY(y) - dy + headlen * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                toCanvasX(x) + dx - headlen * Math.cos(angle + Math.PI / 6),
+                toCanvasY(y) - dy + headlen * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fillStyle = '#2563eb';
+            ctx.fill();
+
+            // Update Info
+            document.getElementById('pointX').textContent = x.toFixed(2);
+            document.getElementById('pointY').textContent = y.toFixed(2);
+            document.getElementById('funcValue').textContent = fVal.toFixed(3);
+            document.getElementById('gradX').textContent = fx.toFixed(3);
+            document.getElementById('gradY').textContent = fy.toFixed(3);
+            document.getElementById('gradMag').textContent = magnitude.toFixed(3);
+            document.getElementById('gradAngle').textContent = ((Math.atan2(fy, fx) * 180) / Math.PI).toFixed(1);
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+            drawContours(funcData.f);
+            drawGradientField(funcData);
+            drawSelectedPoint(funcData);
+
+            // Update Formulas
+            document.getElementById('partialX').textContent = funcData.fxStr;
+            document.getElementById('partialY').textContent = funcData.fyStr;
+            document.getElementById('gradient').textContent = `∇f = (${funcData.fxStr.split('=')[1]}, ${funcData.fyStr.split('=')[1]})`;
+
+            // Interpretation
+            const interp = document.getElementById('interpretation');
+            let text = `<strong>${funcData.name}:</strong> ${funcData.description}<br><br>`;
+            text += `Die roten Pfeile zeigen die Gradienten - sie stehen senkrecht auf den Höhenlinien und zeigen bergauf.<br>`;
+            text += `Der blaue Pfeil zeigt den Gradienten am ausgewählten Punkt. Seine Länge gibt die Steilheit an.`;
+
+            interp.innerHTML = text;
+        }
+
+        function loadExample(type) {
+            functionSelect.value = type;
+            selectedPoint = { x: 1, y: 1 };
+            draw();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+
+            const x = fromCanvasX(cx);
+            const y = fromCanvasY(cy);
+
+            if (Math.abs(x) <= range && Math.abs(y) <= range) {
+                selectedPoint = { x, y };
+                draw();
+            }
+        });
+
+        functionSelect.addEventListener('change', draw);
+
+        draw();
+    </script>
+</body>
+</html>

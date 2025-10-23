@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrale mit negativen Werten</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .positive { color: #27ae60; }
+        .negative { color: #e74c3c; }
+        .total { color: #2563eb; }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .warning-box h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Integrale mit negativen Funktionswerten</h1>
+
+        <div class="description">
+            <p><strong>Wichtiger Unterschied:</strong></p>
+            <p><strong>Integral:</strong> ∫<sub>a</sub><sup>b</sup> f(x) dx = Vorzeichenbehaftete Fläche (positiv - negativ)</p>
+            <p><strong>Flächeninhalt:</strong> ∫<sub>a</sub><sup>b</sup> |f(x)| dx = Absolute Fläche (immer positiv)</p>
+        </div>
+
+        <div class="warning-box">
+            <h4>Achtung: Integral ≠ Flächeninhalt</h4>
+            <p>Wenn f(x) < 0, dann liefert das Integral einen <strong>negativen</strong> Wert!</p>
+            <p>Für den echten Flächeninhalt muss man den Betrag |f(x)| integrieren.</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('sin')">Sinus (pos. & neg.)</button>
+            <button class="example-btn" onclick="loadExample('cubic')">Kubische Funktion</button>
+            <button class="example-btn" onclick="loadExample('parabola')">Verschobene Parabel</button>
+            <button class="example-btn" onclick="loadExample('cos')">Kosinus</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion</label>
+                <select id="function">
+                    <option value="sin">f(x) = sin(x)</option>
+                    <option value="cos">f(x) = cos(x)</option>
+                    <option value="cubic">f(x) = x³ - 4x</option>
+                    <option value="parabola">f(x) = x² - 2</option>
+                    <option value="neg-parabola">f(x) = -x² + 2</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Rechtecke: <span id="nValue">30</span></label>
+                <input type="range" id="n" min="10" max="100" value="30">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Funktion f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 204, 113, 0.5); border: 2px solid #27ae60;"></div>
+                <span>Positive Fläche (f(x) > 0)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(231, 76, 60, 0.5); border: 2px solid #e74c3c;"></div>
+                <span>Negative Fläche (f(x) < 0)</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="500"></canvas>
+
+        <div class="info">
+            <p><strong>Positive Fläche (oberhalb x-Achse):</strong>
+                <span class="info-value positive" id="posArea">0</span>
+            </p>
+            <p><strong>Negative Fläche (unterhalb x-Achse):</strong>
+                <span class="info-value negative" id="negArea">0</span>
+            </p>
+            <hr>
+            <p><strong>Integral ∫ f(x) dx (vorzeichenbehaftet):</strong>
+                <span class="info-value total" id="integral">0</span>
+            </p>
+            <p><strong>Flächeninhalt ∫ |f(x)| dx (absolut):</strong>
+                <span class="info-value total" id="absArea">0</span>
+            </p>
+            <hr>
+            <p style="font-size: 14px; color: #7f8c8d;">
+                Berechnung: Integral = Positive Fläche - Negative Fläche<br>
+                Flächeninhalt = Positive Fläche + Negative Fläche
+            </p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle eine Funktion und beobachte den Unterschied zwischen Integral und Flächeninhalt.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+
+        const functions = {
+            sin: {
+                f: x => Math.sin(x),
+                name: 'sin(x)',
+                a: 0,
+                b: 2 * Math.PI,
+                minY: -1.5,
+                maxY: 1.5
+            },
+            cos: {
+                f: x => Math.cos(x),
+                name: 'cos(x)',
+                a: 0,
+                b: 2 * Math.PI,
+                minY: -1.5,
+                maxY: 1.5
+            },
+            cubic: {
+                f: x => x * x * x - 4 * x,
+                name: 'x³ - 4x',
+                a: -2.5,
+                b: 2.5,
+                minY: -6,
+                maxY: 6
+            },
+            parabola: {
+                f: x => x * x - 2,
+                name: 'x² - 2',
+                a: -2,
+                b: 2,
+                minY: -3,
+                maxY: 3
+            },
+            'neg-parabola': {
+                f: x => -x * x + 2,
+                name: '-x² + 2',
+                a: -2,
+                b: 2,
+                minY: -3,
+                maxY: 3
+            }
+        };
+
+        function toCanvasX(x, a, b) {
+            const padding = 60;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - a) / (b - a) * width;
+        }
+
+        function toCanvasY(y, minY, maxY) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - minY) / (maxY - minY) * height;
+        }
+
+        function drawAxes(a, b, minY, maxY) {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(a, a, b), toCanvasY(0, minY, maxY));
+            ctx.lineTo(toCanvasX(b, a, b), toCanvasY(0, minY, maxY));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, a, b), toCanvasY(minY, minY, maxY));
+            ctx.lineTo(toCanvasX(0, a, b), toCanvasY(maxY, minY, maxY));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(b, a, b) + 10, toCanvasY(0, minY, maxY) + 5);
+            ctx.fillText('y', toCanvasX(0, a, b) + 10, toCanvasY(maxY, minY, maxY) - 10);
+        }
+
+        function drawFunction(func, a, b, minY, maxY) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let started = false;
+            for (let x = a; x <= b; x += (b - a) / 500) {
+                const y = func(x);
+                const cx = toCanvasX(x, a, b);
+                const cy = toCanvasY(y, minY, maxY);
+
+                if (!started) {
+                    ctx.moveTo(cx, cy);
+                    started = true;
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function calculateAreas(func, a, b, minY, maxY, n) {
+            const dx = (b - a) / n;
+            let posArea = 0;
+            let negArea = 0;
+
+            for (let i = 0; i < n; i++) {
+                const x = a + (i + 0.5) * dx;
+                const y = func(x);
+
+                const x1 = toCanvasX(a + i * dx, a, b);
+                const x2 = toCanvasX(a + (i + 1) * dx, a, b);
+                const cy = toCanvasY(y, minY, maxY);
+                const cy0 = toCanvasY(0, minY, maxY);
+
+                if (y > 0) {
+                    // Positive Fläche
+                    posArea += y * dx;
+                    ctx.fillStyle = 'rgba(46, 204, 113, 0.5)';
+                    ctx.strokeStyle = '#27ae60';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(x1, cy, x2 - x1, cy0 - cy);
+                    ctx.strokeRect(x1, cy, x2 - x1, cy0 - cy);
+                } else if (y < 0) {
+                    // Negative Fläche
+                    negArea += Math.abs(y) * dx;
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.5)';
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(x1, cy0, x2 - x1, cy - cy0);
+                    ctx.strokeRect(x1, cy0, x2 - x1, cy - cy0);
+                }
+            }
+
+            return { posArea, negArea };
+        }
+
+        function updateInterpretation(funcName, integral, absArea, posArea, negArea) {
+            const interp = document.getElementById('interpretation');
+
+            let text = `<strong>Funktion: ${funcName}</strong><br><br>`;
+
+            if (Math.abs(integral) < 0.1 && absArea > 0.5) {
+                text += `<strong>Wichtiger Fall:</strong> Das Integral ist nahe 0 (${integral.toFixed(3)}), aber die Fläche ist ${absArea.toFixed(3)}! `;
+                text += `Das liegt daran, dass sich positive und negative Flächen gegenseitig aufheben.<br><br>`;
+            }
+
+            text += `Die <strong>positive Fläche</strong> (grün, oberhalb der x-Achse) beträgt ${posArea.toFixed(3)}.<br>`;
+            text += `Die <strong>negative Fläche</strong> (rot, unterhalb der x-Achse) beträgt ${negArea.toFixed(3)}.<br><br>`;
+
+            text += `<strong>Das Integral</strong> rechnet: ${posArea.toFixed(3)} - ${negArea.toFixed(3)} = ${integral.toFixed(3)}<br>`;
+            text += `<strong>Der Flächeninhalt</strong> rechnet: ${posArea.toFixed(3)} + ${negArea.toFixed(3)} = ${absArea.toFixed(3)}<br><br>`;
+
+            if (negArea === 0) {
+                text += `In diesem Bereich ist die Funktion immer positiv, daher sind Integral und Flächeninhalt identisch.`;
+            } else if (posArea === 0) {
+                text += `In diesem Bereich ist die Funktion immer negativ, daher ist das Integral negativ, aber der Flächeninhalt positiv.`;
+            } else {
+                text += `Für physikalische Flächenberechnungen benötigt man meist ∫|f(x)|dx, nicht ∫f(x)dx!`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const n = parseInt(nSlider.value);
+
+            nValue.textContent = n;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawAxes(funcData.a, funcData.b, funcData.minY, funcData.maxY);
+
+            const { posArea, negArea } = calculateAreas(
+                funcData.f,
+                funcData.a,
+                funcData.b,
+                funcData.minY,
+                funcData.maxY,
+                n
+            );
+
+            drawFunction(funcData.f, funcData.a, funcData.b, funcData.minY, funcData.maxY);
+
+            const integral = posArea - negArea;
+            const absArea = posArea + negArea;
+
+            document.getElementById('posArea').textContent = posArea.toFixed(6);
+            document.getElementById('negArea').textContent = negArea.toFixed(6);
+            document.getElementById('integral').textContent = integral.toFixed(6);
+            document.getElementById('absArea').textContent = absArea.toFixed(6);
+
+            updateInterpretation(funcData.name, integral, absArea, posArea, negArea);
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'sin':
+                    functionSelect.value = 'sin';
+                    nSlider.value = 40;
+                    break;
+                case 'cubic':
+                    functionSelect.value = 'cubic';
+                    nSlider.value = 35;
+                    break;
+                case 'parabola':
+                    functionSelect.value = 'parabola';
+                    nSlider.value = 30;
+                    break;
+                case 'cos':
+                    functionSelect.value = 'cos';
+                    nSlider.value = 40;
+                    break;
+            }
+            draw();
+        }
+
+        functionSelect.addEventListener('change', draw);
+        nSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volumenintegral - Rotationskörper</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .formula {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Volumenintegral: Rotationskörper</h1>
+
+        <div class="description">
+            <p><strong>Rotationskörper:</strong> Wenn eine Funktion f(x) um die x-Achse rotiert, entsteht ein 3D-Körper.</p>
+            <p><strong>Volumenformel:</strong> V = π ∫<sub>a</sub><sup>b</sup> [f(x)]² dx</p>
+            <p>Jede Scheibe hat Radius r = f(x) und Fläche A = πr² = π[f(x)]²</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('cone')">Kegel</button>
+            <button class="example-btn" onclick="loadExample('sphere')">Halbkugel</button>
+            <button class="example-btn" onclick="loadExample('paraboloid')">Paraboloid</button>
+            <button class="example-btn" onclick="loadExample('trumpet')">Trichter</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Funktion</label>
+                <select id="function">
+                    <option value="linear">f(x) = x (Kegel)</option>
+                    <option value="sqrt">f(x) = √(4-x²) (Halbkugel)</option>
+                    <option value="parabola">f(x) = x² (Paraboloid)</option>
+                    <option value="inverse">f(x) = 1/x (Trichter)</option>
+                    <option value="sin">f(x) = sin(x) + 1.5</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Scheiben: <span id="nValue">20</span></label>
+                <input type="range" id="n" min="5" max="50" value="20">
+            </div>
+
+            <div class="control-group">
+                <label>Rotation: <span id="rotationValue">30</span>°</label>
+                <input type="range" id="rotation" min="0" max="360" value="30">
+            </div>
+
+            <div class="control-group">
+                <label>Neigung: <span id="tiltValue">20</span>°</label>
+                <input type="range" id="tilt" min="0" max="60" value="20">
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button id="playBtn" style="background: #27ae60; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 14px; margin: 0 5px; font-weight: bold;">▶ Animation abspielen</button>
+            <button id="pauseBtn" style="background: #e67e22; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 14px; margin: 0 5px; font-weight: bold; display: none;">⏸ Pause</button>
+            <button id="resetBtn" style="background: #e74c3c; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 14px; margin: 0 5px; font-weight: bold;">↺ Zurücksetzen</button>
+        </div>
+
+        <div style="text-align: center; margin: 15px 0;">
+            <span style="font-size: 16px; font-weight: bold; color: #2563eb;">Fortschritt: <span id="progressText">0%</span></span>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c;"></div>
+                <span>Funktion f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(37, 99, 235, 0.5); border: 2px solid #2563eb;"></div>
+                <span>Rotationskörper (Scheiben)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 204, 113, 0.3); border: 2px solid #27ae60;"></div>
+                <span>Einzelne Scheibe</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="500"></canvas>
+
+        <div class="formula-box">
+            <div class="formula" id="volumeFormula">V = π ∫ [f(x)]² dx</div>
+        </div>
+
+        <div class="info">
+            <p><strong>Berechnetes Volumen:</strong> <span class="info-value" id="volume">0</span></p>
+            <p><strong>Exaktes Volumen:</strong> <span id="exact">0</span></p>
+            <p><strong>Absoluter Fehler:</strong> <span id="error">0</span></p>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle eine Funktion und beobachte, wie der Rotationskörper entsteht.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+        const rotationSlider = document.getElementById('rotation');
+        const rotationValue = document.getElementById('rotationValue');
+        const tiltSlider = document.getElementById('tilt');
+        const tiltValue = document.getElementById('tiltValue');
+
+        // Animation state
+        let animationProgress = 0;
+        let isAnimating = false;
+        let animationId = null;
+        const animationSpeed = 0.005;
+
+        const functions = {
+            linear: {
+                f: x => x,
+                name: 'f(x) = x',
+                a: 0,
+                b: 2,
+                maxY: 2.5,
+                getExactVolume: function() {
+                    return Math.PI * Math.pow(this.b, 3) / 3;
+                },
+                description: 'Kegel: Lineare Funktion rotiert um die x-Achse ergibt einen perfekten Kegel.'
+            },
+            sqrt: {
+                f: x => Math.sqrt(4 - x * x),
+                name: 'f(x) = √(4-x²)',
+                a: 0,
+                b: 2,
+                maxY: 2.5,
+                getExactVolume: function() {
+                    return (4/3) * Math.PI * Math.pow(2, 3) / 2;
+                },
+                description: 'Halbkugel: Der obere Halbkreis rotiert um die x-Achse ergibt eine Halbkugel mit Radius 2.'
+            },
+            parabola: {
+                f: x => x * x,
+                name: 'f(x) = x²',
+                a: 0,
+                b: 1,
+                maxY: 1.5,
+                getExactVolume: function() {
+                    return Math.PI * Math.pow(this.b, 5) / 5;
+                },
+                description: 'Paraboloid: Eine Parabel rotiert um die x-Achse ergibt einen parabolischen Rotationskörper.'
+            },
+            inverse: {
+                f: x => 1 / x,
+                name: 'f(x) = 1/x',
+                a: 1,
+                b: 3,
+                maxY: 1.5,
+                getExactVolume: function() {
+                    return Math.PI * (1/this.a - 1/this.b);
+                },
+                description: 'Trichter: Die Hyperbel 1/x rotiert um die x-Achse ergibt eine Trichterform.'
+            },
+            sin: {
+                f: x => Math.sin(x) + 1.5,
+                name: 'f(x) = sin(x) + 1.5',
+                a: 0,
+                b: Math.PI,
+                maxY: 3,
+                getExactVolume: function() {
+                    return Math.PI * (2.25 * this.b + 0.25 * Math.sin(2 * this.b) - (2.25 * this.a + 0.25 * Math.sin(2 * this.a)));
+                },
+                description: 'Sinuswelle: Eine verschobene Sinusfunktion erzeugt einen wellenförmigen Körper.'
+            }
+        };
+
+        function toCanvasX(x, a, b) {
+            const padding = 80;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - a) / (b - a) * width;
+        }
+
+        function toCanvasY(y, maxY) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y / maxY) * height;
+        }
+
+        function drawAxes(a, b, maxY) {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(a, a, b), toCanvasY(0, maxY));
+            ctx.lineTo(toCanvasX(b, a, b), toCanvasY(0, maxY));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(a, a, b), toCanvasY(0, maxY));
+            ctx.lineTo(toCanvasX(a, a, b), toCanvasY(maxY, maxY));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(b, a, b) + 10, toCanvasY(0, maxY) + 5);
+            ctx.fillText('y', toCanvasX(a, a, b) - 15, toCanvasY(maxY, maxY) - 10);
+        }
+
+        function drawFunction(func, a, b, maxY) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            for (let x = a; x <= b; x += (b - a) / 200) {
+                const y = func(x);
+                const cx = toCanvasX(x, a, b);
+                const cy = toCanvasY(y, maxY);
+
+                if (x === a) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+
+            // Zeichne gespiegelte Funktion
+            ctx.strokeStyle = 'rgba(231, 76, 60, 0.3)';
+            ctx.beginPath();
+
+            for (let x = a; x <= b; x += (b - a) / 200) {
+                const y = -func(x);
+                const cx = toCanvasX(x, a, b);
+                const cy = toCanvasY(y, maxY);
+
+                if (x === a) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // 3D-Projektion
+        function project3D(x, y, z, rotAngle, tiltAngle) {
+            const scale = 70;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2 + 30;
+
+            // Konvertiere Winkel zu Radianten
+            const rotRad = (rotAngle * Math.PI) / 180;
+            const tiltRad = (tiltAngle * Math.PI) / 180;
+
+            // Y-Achsen-Rotation (horizontal drehen)
+            let x1 = x * Math.cos(rotRad) - z * Math.sin(rotRad);
+            let z1 = x * Math.sin(rotRad) + z * Math.cos(rotRad);
+
+            // X-Achsen-Rotation (kippen)
+            let y1 = y * Math.cos(tiltRad) - z1 * Math.sin(tiltRad);
+            let z2 = y * Math.sin(tiltRad) + z1 * Math.cos(tiltRad);
+
+            // Perspektive
+            const perspective = 0.1;
+            const pFactor = 1 / (1 + perspective * z2);
+
+            return {
+                x: centerX + x1 * scale * pFactor,
+                y: centerY - y1 * scale * pFactor,
+                z: z2
+            };
+        }
+
+        function drawRotationBody(func, a, b, maxY, n, rotAngle, tiltAngle, progress) {
+            const dx = (b - a) / n;
+            const numSegments = 20; // Anzahl Segmente um die Rotationsachse
+            const maxSlices = Math.ceil(n * progress);
+
+            // Sammle alle Polygone mit ihrer Tiefe für Painter's Algorithm
+            const polygons = [];
+
+            for (let i = 0; i < maxSlices; i++) {
+                const x1 = a + i * dx;
+                const x2 = a + (i + 1) * dx;
+                const r1 = func(x1);
+                const r2 = func(x2);
+
+                const isHighlighted = (i === maxSlices - 1 && isAnimating);
+
+                // Erstelle Scheibe aus Segmenten
+                for (let j = 0; j < numSegments; j++) {
+                    const angle1 = (j / numSegments) * 2 * Math.PI;
+                    const angle2 = ((j + 1) / numSegments) * 2 * Math.PI;
+
+                    // Viereck zwischen zwei Kreisen
+                    const p1 = project3D(x1, r1 * Math.cos(angle1), r1 * Math.sin(angle1), rotAngle, tiltAngle);
+                    const p2 = project3D(x1, r1 * Math.cos(angle2), r1 * Math.sin(angle2), rotAngle, tiltAngle);
+                    const p3 = project3D(x2, r2 * Math.cos(angle2), r2 * Math.sin(angle2), rotAngle, tiltAngle);
+                    const p4 = project3D(x2, r2 * Math.cos(angle1), r2 * Math.sin(angle1), rotAngle, tiltAngle);
+
+                    const avgZ = (p1.z + p2.z + p3.z + p4.z) / 4;
+
+                    polygons.push({
+                        points: [p1, p2, p3, p4],
+                        z: avgZ,
+                        isHighlighted: isHighlighted,
+                        isEnd: (i === maxSlices - 1)
+                    });
+                }
+
+                // Vordere und hintere Deckfläche
+                if (i === 0 || i === maxSlices - 1) {
+                    const x = i === 0 ? x1 : x2;
+                    const r = i === 0 ? r1 : r2;
+                    const circlePoints = [];
+
+                    for (let j = 0; j <= numSegments; j++) {
+                        const angle = (j / numSegments) * 2 * Math.PI;
+                        circlePoints.push(project3D(x, r * Math.cos(angle), r * Math.sin(angle), rotAngle, tiltAngle));
+                    }
+
+                    const avgZ = circlePoints.reduce((sum, p) => sum + p.z, 0) / circlePoints.length;
+
+                    polygons.push({
+                        points: circlePoints,
+                        z: avgZ,
+                        isHighlighted: isHighlighted && i === maxSlices - 1,
+                        isCircle: true,
+                        isEnd: (i === maxSlices - 1)
+                    });
+                }
+            }
+
+            // Sortiere nach Tiefe (Painter's Algorithm)
+            polygons.sort((a, b) => a.z - b.z);
+
+            // Zeichne Polygone
+            polygons.forEach(poly => {
+                ctx.beginPath();
+                ctx.moveTo(poly.points[0].x, poly.points[0].y);
+                for (let i = 1; i < poly.points.length; i++) {
+                    ctx.lineTo(poly.points[i].x, poly.points[i].y);
+                }
+                ctx.closePath();
+
+                if (poly.isHighlighted) {
+                    ctx.fillStyle = 'rgba(46, 204, 113, 0.6)';
+                    ctx.strokeStyle = '#27ae60';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.fillStyle = poly.isCircle ? 'rgba(37, 99, 235, 0.5)' : 'rgba(37, 99, 235, 0.4)';
+                    ctx.strokeStyle = 'rgba(37, 99, 235, 0.7)';
+                    ctx.lineWidth = 0.5;
+                }
+
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+
+        function calculateVolume(func, a, b, n) {
+            const dx = (b - a) / n;
+            let sum = 0;
+
+            for (let i = 0; i < n; i++) {
+                const x = a + (i + 0.5) * dx;
+                const r = func(x);
+                sum += r * r * dx;
+            }
+
+            return Math.PI * sum;
+        }
+
+        function updateInterpretation(funcData, n, volume, exact) {
+            const interp = document.getElementById('interpretation');
+            const error = Math.abs(volume - exact);
+            const relError = (error / exact) * 100;
+
+            let text = `<strong>${funcData.name}:</strong> ${funcData.description}<br><br>`;
+
+            text += `Mit ${n} Scheiben approximieren wir das Volumen. `;
+
+            if (relError < 1) {
+                text += `Die Approximation ist sehr genau (Fehler: ${relError.toFixed(3)}%).`;
+            } else if (relError < 5) {
+                text += `Gute Approximation mit einem Fehler von ${relError.toFixed(2)}%.`;
+            } else {
+                text += `Mit mehr Scheiben wird die Approximation genauer (aktueller Fehler: ${relError.toFixed(2)}%).`;
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const n = parseInt(nSlider.value);
+            const rotAngle = parseInt(rotationSlider.value);
+            const tiltAngle = parseInt(tiltSlider.value);
+            const progress = isAnimating ? animationProgress : 1.0;
+
+            nValue.textContent = n;
+            rotationValue.textContent = rotAngle;
+            tiltValue.textContent = tiltAngle;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Zeichne 3D-Achsen
+            draw3DAxes(funcData.a, funcData.b, funcData.maxY, rotAngle, tiltAngle);
+
+            // Zeichne 3D-Rotationskörper
+            drawRotationBody(funcData.f, funcData.a, funcData.b, funcData.maxY, n, rotAngle, tiltAngle, progress);
+
+            // Zeichne Funktion in 3D
+            drawFunction3D(funcData.f, funcData.a, funcData.b, funcData.maxY, rotAngle, tiltAngle, progress);
+
+            const actualN = Math.ceil(n * progress);
+            const volume = calculateVolume(funcData.f, funcData.a, funcData.b, actualN);
+            const exact = funcData.getExactVolume();
+            const error = Math.abs(volume - exact);
+
+            document.getElementById('volume').textContent = volume.toFixed(6);
+            document.getElementById('exact').textContent = exact.toFixed(6);
+            document.getElementById('error').textContent = error.toFixed(6);
+            document.getElementById('progressText').textContent = (progress * 100).toFixed(0) + '%';
+
+            const a_str = funcData.a === 0 ? '0' : funcData.a.toFixed(2);
+            const b_str = funcData.b.toFixed(2);
+            document.getElementById('volumeFormula').textContent =
+                `V = π ∫${a_str}→${b_str} [${funcData.name}]² dx`;
+
+            updateInterpretation(funcData, actualN, volume, exact);
+        }
+
+        function draw3DAxes(a, b, maxY, rotAngle, tiltAngle) {
+            const origin = project3D(0, 0, 0, rotAngle, tiltAngle);
+            const xAxis = project3D(b + 0.5, 0, 0, rotAngle, tiltAngle);
+            const yAxis = project3D(0, maxY, 0, rotAngle, tiltAngle);
+            const zAxis = project3D(0, 0, maxY, rotAngle, tiltAngle);
+
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(xAxis.x, xAxis.y);
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(yAxis.x, yAxis.y);
+            ctx.stroke();
+
+            // Z-Achse
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(zAxis.x, zAxis.y);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', xAxis.x + 10, xAxis.y);
+            ctx.fillText('y', yAxis.x, yAxis.y - 10);
+            ctx.fillText('z', zAxis.x, zAxis.y - 10);
+        }
+
+        function drawFunction3D(func, a, b, maxY, rotAngle, tiltAngle, progress) {
+            const steps = 100;
+            const dx = (b - a) / steps;
+            const maxX = a + (b - a) * progress;
+
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let started = false;
+            for (let i = 0; i <= steps * progress; i++) {
+                const x = a + i * dx;
+                const y = func(x);
+                const p = project3D(x, y, 0, rotAngle, tiltAngle);
+
+                if (!started) {
+                    ctx.moveTo(p.x, p.y);
+                    started = true;
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function loadExample(type) {
+            resetAnimation();
+            switch(type) {
+                case 'cone':
+                    functionSelect.value = 'linear';
+                    nSlider.value = 20;
+                    rotationSlider.value = 30;
+                    tiltSlider.value = 20;
+                    break;
+                case 'sphere':
+                    functionSelect.value = 'sqrt';
+                    nSlider.value = 30;
+                    rotationSlider.value = 45;
+                    tiltSlider.value = 25;
+                    break;
+                case 'paraboloid':
+                    functionSelect.value = 'parabola';
+                    nSlider.value = 25;
+                    rotationSlider.value = 20;
+                    tiltSlider.value = 15;
+                    break;
+                case 'trumpet':
+                    functionSelect.value = 'inverse';
+                    nSlider.value = 20;
+                    rotationSlider.value = 35;
+                    tiltSlider.value = 20;
+                    break;
+            }
+            draw();
+        }
+
+        // Animation
+        function animate() {
+            if (isAnimating) {
+                animationProgress += animationSpeed;
+                if (animationProgress >= 1.0) {
+                    animationProgress = 1.0;
+                    stopAnimation();
+                }
+                draw();
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function startAnimation() {
+            if (!isAnimating) {
+                if (animationProgress >= 1.0) {
+                    animationProgress = 0;
+                }
+                isAnimating = true;
+                document.getElementById('playBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = 'inline-block';
+                animate();
+            }
+        }
+
+        function stopAnimation() {
+            isAnimating = false;
+            document.getElementById('playBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        function resetAnimation() {
+            stopAnimation();
+            animationProgress = 0;
+            draw();
+        }
+
+        // Event Listeners
+        document.getElementById('playBtn').addEventListener('click', startAnimation);
+        document.getElementById('pauseBtn').addEventListener('click', stopAnimation);
+        document.getElementById('resetBtn').addEventListener('click', resetAnimation);
+
+        functionSelect.addEventListener('change', () => {
+            resetAnimation();
+            draw();
+        });
+
+        nSlider.addEventListener('input', () => {
+            if (!isAnimating) draw();
+        });
+
+        rotationSlider.addEventListener('input', () => {
+            if (!isAnimating) draw();
+        });
+
+        tiltSlider.addEventListener('input', () => {
+            if (!isAnimating) draw();
+        });
+
+        draw();
+    </script>
+</body>
+</html>
