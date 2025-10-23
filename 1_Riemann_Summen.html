@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riemann-Summen Visualisierung</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .examples {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .example-btn {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .interpretation {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #e2e8f0;
+            margin-top: 15px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .accuracy-bar {
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+        }
+        .accuracy-fill {
+            height: 100%;
+            background: transparent;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+        .accuracy-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: var(--overlay-width, 100%);
+            background: #ecf0f1;
+            transition: width 0.5s;
+            z-index: 1;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Riemann-Summen Visualisierung</h1>
+
+        <div class="description">
+            <p>Die Riemann-Summe approximiert die Fläche unter einer Kurve durch Rechtecke oder Trapeze.</p>
+            <p><strong>Formel:</strong> ∫<sub>a</sub><sup>b</sup> f(x) dx ≈ Σ f(x<sub>i</sub>) · Δx, wobei Δx = (b-a)/n</p>
+        </div>
+
+        <div class="examples">
+            <button class="example-btn" onclick="loadExample('rough')">Grobe Approximation (n=5)</button>
+            <button class="example-btn" onclick="loadExample('medium')">Mittlere Genauigkeit (n=20)</button>
+            <button class="example-btn" onclick="loadExample('fine')">Hohe Genauigkeit (n=50)</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>
+                    Funktion
+                    
+                </label>
+                <select id="function">
+                    <option value="x2">f(x) = x² (Parabel)</option>
+                    <option value="sin">f(x) = sin(x) + 2 (Trigonometrisch)</option>
+                    <option value="exp">f(x) = e^(x/2) (Exponentiell)</option>
+                    <option value="sqrt">f(x) = √x (Wurzelfunktion)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Methode
+                    
+                </label>
+                <select id="method">
+                    <option value="left">Links-Rechteck</option>
+                    <option value="right">Rechts-Rechteck</option>
+                    <option value="mid" selected>Mittelpunkt (empfohlen)</option>
+                    <option value="trapez">Trapezregel</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Anzahl Rechtecke (n): <span id="nValue" style="color: #e74c3c;">10</span>
+                    
+                </label>
+                <input type="range" id="n" min="1" max="100" value="10">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(37, 99, 235, 0.3); border: 2px solid #2563eb;"></div>
+                <span>Rechteck/Trapez</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c; height: 3px;"></div>
+                <span>Funktion f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2c3e50; height: 2px;"></div>
+                <span>Koordinatenachsen</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="500"></canvas>
+
+        <div class="info">
+            <p><strong>Approximierter Flächeninhalt:</strong> <span class="info-value" id="area">0</span></p>
+            <p><strong>Exakter Wert:</strong> <span id="exact">0</span></p>
+            <p><strong>Absoluter Fehler:</strong> <span id="error">0</span></p>
+            <p><strong>Relativer Fehler:</strong> <span id="relError">0</span> %</p>
+
+            <div style="margin-top: 10px;">
+                <strong>Genauigkeit:</strong>
+                <div class="accuracy-bar">
+                    <div class="accuracy-fill" id="accuracyBar">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Ändere die Parameter oben und beobachte, wie sich die Approximation verändert.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const functionSelect = document.getElementById('function');
+        const methodSelect = document.getElementById('method');
+        const nSlider = document.getElementById('n');
+        const nValue = document.getElementById('nValue');
+
+        const functions = {
+            x2: {
+                f: x => x * x,
+                name: 'x²',
+                maxY: 20,
+                a: 0,
+                b: 4,
+                getExact: function() {
+                    return (this.b**3 - this.a**3) / 3;
+                }
+            },
+            sin: {
+                f: x => Math.sin(x) + 2,
+                name: 'sin(x) + 2',
+                maxY: 4,
+                a: 0,
+                b: 2 * Math.PI,  // Eine volle Periode zeigen
+                getExact: function() {
+                    return 2 * (this.b - this.a) - Math.cos(this.b) + Math.cos(this.a);
+                }
+            },
+            exp: {
+                f: x => Math.exp(x / 2),
+                name: 'e^(x/2)',
+                maxY: 10,
+                a: 0,
+                b: 4,
+                getExact: function() {
+                    return 2 * (Math.exp(this.b/2) - Math.exp(this.a/2));
+                }
+            },
+            sqrt: {
+                f: x => Math.sqrt(x),
+                name: '√x',
+                maxY: 3,
+                a: 0,
+                b: 9,  // Größerer Bereich für bessere Darstellung
+                getExact: function() {
+                    return (2/3) * (Math.pow(this.b, 1.5) - Math.pow(this.a, 1.5));
+                }
+            }
+        };
+
+        let currentA = 0;
+        let currentB = 4;
+        let currentMaxY = 20;
+
+        function loadExample(type) {
+            switch(type) {
+                case 'rough':
+                    nSlider.value = 5;
+                    methodSelect.value = 'left';
+                    break;
+                case 'medium':
+                    nSlider.value = 20;
+                    methodSelect.value = 'mid';
+                    break;
+                case 'fine':
+                    nSlider.value = 50;
+                    methodSelect.value = 'trapez';
+                    break;
+                case 'compare':
+                    nSlider.value = 10;
+                    methodSelect.value = 'mid';
+                    break;
+            }
+            draw();
+        }
+
+        function toCanvasX(x) {
+            const padding = 50;
+            const width = canvas.width - 2 * padding;
+            return padding + (x - currentA) / (currentB - currentA) * width;
+        }
+
+        function toCanvasY(y) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y / currentMaxY) * height;
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(currentA), toCanvasY(0));
+            ctx.lineTo(toCanvasX(currentB), toCanvasY(0));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(currentA), toCanvasY(0));
+            ctx.lineTo(toCanvasX(currentA), toCanvasY(currentMaxY));
+            ctx.stroke();
+
+            // Beschriftungen
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(currentB) + 10, toCanvasY(0) + 5);
+            ctx.fillText('y', toCanvasX(currentA) - 10, toCanvasY(currentMaxY) - 10);
+            ctx.fillText(currentA.toFixed(0), toCanvasX(currentA) - 10, toCanvasY(0) + 20);
+            ctx.fillText(currentB.toFixed(1), toCanvasX(currentB) - 15, toCanvasY(0) + 20);
+        }
+
+        function drawFunction(func) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            const step = (currentB - currentA) / 1000;  // Dynamische Schrittweite
+            for (let x = currentA; x <= currentB; x += step) {
+                const y = func(x);
+                const canvasX = toCanvasX(x);
+                const canvasY = toCanvasY(y);
+
+                if (x === currentA) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function calculateRiemannSum(func, n, method) {
+            const dx = (currentB - currentA) / n;
+            let sum = 0;
+
+            for (let i = 0; i < n; i++) {
+                const x_left = currentA + i * dx;
+                const x_right = currentA + (i + 1) * dx;
+                const x_mid = (x_left + x_right) / 2;
+
+                let height;
+                switch(method) {
+                    case 'left':
+                        height = func(x_left);
+                        break;
+                    case 'right':
+                        height = func(x_right);
+                        break;
+                    case 'mid':
+                        height = func(x_mid);
+                        break;
+                    case 'trapez':
+                        height = (func(x_left) + func(x_right)) / 2;
+                        break;
+                }
+
+                sum += height * dx;
+
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.3)';
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 1;
+
+                const x1 = toCanvasX(x_left);
+                const x2 = toCanvasX(x_right);
+                const y0 = toCanvasY(0);
+
+                if (method === 'trapez') {
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y0);
+                    ctx.lineTo(x1, toCanvasY(func(x_left)));
+                    ctx.lineTo(x2, toCanvasY(func(x_right)));
+                    ctx.lineTo(x2, y0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                } else {
+                    const rectHeight = y0 - toCanvasY(height);
+                    ctx.fillRect(x1, toCanvasY(height), x2 - x1, rectHeight);
+                    ctx.strokeRect(x1, toCanvasY(height), x2 - x1, rectHeight);
+                }
+            }
+
+            return sum;
+        }
+
+        function updateInterpretation(n, error, relError, method) {
+            const interp = document.getElementById('interpretation');
+            let text = '';
+
+            if (n < 5) {
+                text = `Mit nur ${n} Rechteck${n > 1 ? 'en' : ''} ist die Approximation noch sehr grob (Fehler: ${relError.toFixed(1)}%). `;
+                text += 'Erhöhe n für bessere Genauigkeit!';
+            } else if (n < 20) {
+                text = `Mit ${n} Rechtecken wird die Approximation schon deutlich besser (Fehler: ${relError.toFixed(2)}%). `;
+                text += 'Du siehst, wie die Rechtecke der Kurve folgen.';
+            } else if (n < 50) {
+                text = `Gute Approximation mit ${n} Rechtecken! Der Fehler ist nur noch ${relError.toFixed(3)}%. `;
+                text += 'Die Rechtecke passen sich gut an die Kurve an.';
+            } else {
+                text = `Exzellente Approximation mit ${n} Rechtecken! Der Fehler ist winzig (${relError.toFixed(4)}%). `;
+                text += 'Fast nicht mehr vom exakten Wert zu unterscheiden!';
+            }
+
+            if (method === 'trapez') {
+                text += '<br><br><strong>Trapezregel:</strong> Verbindet die Funktionswerte mit Geraden → oft genauer als einfache Rechtecke!';
+            } else if (method === 'mid') {
+                text += '<br><br><strong>Mittelpunkt-Methode:</strong> Nutzt den Wert in der Mitte → beste Rechteck-Methode!';
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const funcKey = functionSelect.value;
+            const funcData = functions[funcKey];
+            const method = methodSelect.value;
+            const n = parseInt(nSlider.value);
+
+            // Update current bounds and maxY based on the selected function
+            currentA = funcData.a;
+            currentB = funcData.b;
+            currentMaxY = funcData.maxY;
+
+            nValue.textContent = n;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawAxes();
+
+            const area = calculateRiemannSum(funcData.f, n, method);
+
+            drawFunction(funcData.f);
+
+            const exact = funcData.getExact();
+            const error = Math.abs(area - exact);
+            const relError = (error / exact) * 100;
+            const accuracy = Math.max(0, 100 - relError);
+
+            document.getElementById('area').textContent = area.toFixed(6);
+            document.getElementById('exact').textContent = exact.toFixed(6);
+            document.getElementById('error').textContent = error.toFixed(6);
+            document.getElementById('relError').textContent = relError.toFixed(4);
+
+            const accuracyBar = document.getElementById('accuracyBar');
+            const accuracyBarContainer = accuracyBar.parentElement;
+            accuracyBar.style.width = accuracy + '%';
+            accuracyBar.textContent = accuracy.toFixed(1) + '%';
+
+            // Setze die Breite des grauen Overlays (::after)
+            accuracyBarContainer.style.setProperty('--overlay-width', (100 - accuracy) + '%');
+
+            updateInterpretation(n, error, relError, method);
+        }
+
+        functionSelect.addEventListener('change', draw);
+        methodSelect.addEventListener('change', draw);
+        nSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

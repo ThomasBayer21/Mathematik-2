@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DGL Richtungsfeld</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #8b5cf6;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #8b5cf6;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            cursor: crosshair;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        .instruction {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .equation {
+            font-size: 22px;
+            font-weight: bold;
+            color: #8b5cf6;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f4fc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            padding: 12px;
+            font-size: 13px;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+            min-height: 60px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .tips-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .tips-section h3 {
+            margin-top: 0;
+            color: #2563eb;
+            font-size: 16px;
+        }
+        .tips-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tips-section li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Richtungsfeld für DGL 1. Ordnung</h1>
+
+        <div class="description">
+            <strong>Was ist ein Richtungsfeld?</strong> Ein Richtungsfeld visualisiert die Steigung y' = f(x, y) einer Differentialgleichung an jedem Punkt (x, y).
+            Die kleinen violetten Linien zeigen die Richtung an, in die Lösungskurven verlaufen würden.
+            <br><br>
+            <strong>Wie benutzen?</strong> Wähle eine Gleichung aus und klicke auf das Feld, um Lösungskurven durch verschiedene Anfangspunkte zu zeichnen.
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('growth')">Exponentielles Wachstum</button>
+            <button class="example-btn" onclick="loadExample('decay')">Exponentieller Zerfall</button>
+            <button class="example-btn" onclick="loadExample('logistic')">Logistisches Verhalten</button>
+            <button class="example-btn" onclick="loadExample('oscillation')">Oszillation (Sinus)</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Differentialgleichung y' = f(x, y):</label>
+                <select id="equation">
+                    <option value="y">y' = y</option>
+                    <option value="x">y' = x</option>
+                    <option value="xy">y' = x·y</option>
+                    <option value="x-y">y' = x - y</option>
+                    <option value="y2">y' = y²</option>
+                    <option value="sin">y' = sin(x)</option>
+                    <option value="-y">y' = -y</option>
+                    <option value="1-y">y' = 1 - y</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Animation:</label>
+                <button id="animBtn" onclick="toggleAnimation()">Animation starten</button>
+            </div>
+
+            <div class="control-group">
+                <label>Aktionen:</label>
+                <button onclick="clearSolutions()">Lösungen löschen</button>
+            </div>
+        </div>
+
+        <div class="equation" id="currentEq">y' = y</div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(90deg, rgb(255, 100, 100), #f39c12, rgb(100, 255, 100)); height: 15px; width: 60px;"></div>
+                <span>Steigungen: rot (negativ) → orange (≈0) → grün (positiv)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c; height: 3px;"></div>
+                <span>Lösungskurven</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: rgba(243, 156, 18, 0.4); width: 15px; height: 15px; border-radius: 20%;"></div>
+                <span>Gleichgewichtspunkte (y' ≈ 0)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #2563eb; border: 2px solid white;"></div>
+                <span>Animierter Punkt (folgt Richtungsfeld)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #e74c3c;"></div>
+                <span>Startpunkt</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="600"></canvas>
+
+        <div class="instruction">
+            <strong>Interaktion:</strong> Klicke auf verschiedene Punkte im Feld, um Lösungskurven zu zeichnen! Jede Kurve startet an deinem gewählten Punkt und folgt dem Richtungsfeld.
+        </div>
+
+        <div class="interpretation" id="interpretation">
+            <h3>Was bedeutet das?</h3>
+            <p>Wähle eine Gleichung und klicke ins Feld, um die Interpretation zu sehen.</p>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tipps zum Verständnis von Richtungsfeldern</h3>
+            <ul>
+                <li><strong>Richtungslinien:</strong> Jede kleine violette Linie zeigt die momentane Steigung der Lösung an diesem Punkt</li>
+                <li><strong>Lösungskurven:</strong> Folgen den Richtungslinien tangential - sie "fließen" entlang des Feldes</li>
+                <li><strong>Parallele Linien:</strong> Deutet auf ähnliches Verhalten hin (z.B. bei y' = x sind alle Linien für festes x parallel)</li>
+                <li><strong>Gleichgewichtspunkte:</strong> Wo Linien horizontal sind (Steigung = 0), gibt es konstante Lösungen</li>
+                <li><strong>Verschiedene Anfangspunkte:</strong> Teste mehrere Startpunkte, um das globale Verhalten zu verstehen</li>
+                <li><strong>Stabilität:</strong> Schaue, ob Lösungen zu einem Punkt konvergieren (stabil) oder davon weg laufen (instabil)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const equationSelect = document.getElementById('equation');
+
+        const xMin = -5, xMax = 5;
+        const yMin = -5, yMax = 5;
+
+        let solutions = [];
+        let animationProgress = 0;
+        let isAnimating = false;
+
+        const equations = {
+            'y': {
+                f: (x, y) => y,
+                label: "y' = y",
+                description: "Exponentielles Wachstum/Zerfall: Lösungen wachsen exponentiell für y > 0 und fallen für y < 0. Die y-Achse (y = 0) ist eine Gleichgewichtslösung. Anwendung: Zinseszins, radioaktiver Zerfall, Bakterienwachstum."
+            },
+            'x': {
+                f: (x, y) => x,
+                label: "y' = x",
+                description: "Lineares Wachstum: Die Steigung hängt nur von x ab, nicht von y. Alle Lösungen sind Parabeln der Form y = x²/2 + C. Für x > 0 steigen alle Kurven, für x < 0 fallen sie."
+            },
+            'xy': {
+                f: (x, y) => x * y,
+                label: "y' = x·y",
+                description: "Kombiniertes Wachstum: Die Steigung hängt von beiden Variablen ab. Lösungen haben die Form y = C·e^(x²/2). Starkes Wachstum für große |x| und |y|."
+            },
+            'x-y': {
+                f: (x, y) => x - y,
+                label: "y' = x - y",
+                description: "Lineare DGL 1. Ordnung: Lösungen konvergieren zur Geraden y = x - 1 (Gleichgewichtslinie). Für Anfangswerte oberhalb dieser Linie fallen die Lösungen, unterhalb steigen sie."
+            },
+            'y2': {
+                f: (x, y) => y * y,
+                label: "y' = y²",
+                description: "Nichtlineare DGL: Zeigt Blow-up-Verhalten - Lösungen mit y(0) > 0 gehen in endlicher Zeit gegen unendlich! Die Gleichgewichtslösung y = 0 ist instabil. Lösungen mit y(0) < 0 konvergieren zu 0."
+            },
+            'sin': {
+                f: (x, y) => Math.sin(x),
+                label: "y' = sin(x)",
+                description: "Periodische Steigung: Die Steigung hängt nur von x ab und oszilliert. Lösungen sind vertikale Verschiebungen von y = -cos(x) + C und zeigen Wellenmuster."
+            },
+            '-y': {
+                f: (x, y) => -y,
+                label: "y' = -y",
+                description: "Exponentieller Zerfall: Alle Lösungen konvergieren exponentiell zu y = 0 (stabiler Gleichgewichtspunkt). Je größer |y|, desto schneller die Konvergenz. Anwendung: Abkühlung (Newton), Medikamentenabbau."
+            },
+            '1-y': {
+                f: (x, y) => 1 - y,
+                label: "y' = 1 - y",
+                description: "Logistisches Verhalten (vereinfacht): Die Gerade y = 1 ist ein stabiler Gleichgewichtspunkt. Lösungen oberhalb fallen zu y = 1, unterhalb steigen sie zu y = 1. Allgemeine Lösung: y = 1 + C·e^(-x)."
+            }
+        };
+
+        function toCanvasX(x) {
+            return (x - xMin) / (xMax - xMin) * canvas.width;
+        }
+
+        function toCanvasY(y) {
+            return canvas.height - (y - yMin) / (yMax - yMin) * canvas.height;
+        }
+
+        function fromCanvasX(cx) {
+            return xMin + (cx / canvas.width) * (xMax - xMin);
+        }
+
+        function fromCanvasY(cy) {
+            return yMin + ((canvas.height - cy) / canvas.height) * (yMax - yMin);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+
+            // Vertikale Linien
+            for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(x), 0);
+                ctx.lineTo(toCanvasX(x), canvas.height);
+                ctx.stroke();
+            }
+
+            // Horizontale Linien
+            for (let y = Math.ceil(yMin); y <= Math.floor(yMax); y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, toCanvasY(y));
+                ctx.lineTo(canvas.width, toCanvasY(y));
+                ctx.stroke();
+            }
+
+            // Achsen
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(0, toCanvasY(0));
+            ctx.lineTo(canvas.width, toCanvasY(0));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), 0);
+            ctx.lineTo(toCanvasX(0), canvas.height);
+            ctx.stroke();
+
+            // Beschriftungen
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.fillText('x', toCanvasX(xMax) - 20, toCanvasY(0) + 20);
+            ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(yMax) + 10);
+        }
+
+        function drawArrow(x1, y1, x2, y2, color, lineWidth = 1.5) {
+            // Zeichne Linie
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Zeichne Pfeilspitze
+            const headLength = 5;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI/6), y2 - headLength * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI/6), y2 - headLength * Math.sin(angle + Math.PI/6));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function getSlopeColor(slope) {
+            // Farbkodierung: rot (negativ) -> gelb (0) -> grün (positiv)
+            const maxSlope = 3;
+            const normalized = Math.max(-1, Math.min(1, slope / maxSlope));
+
+            if (Math.abs(slope) < 0.1) {
+                return '#f39c12'; // Orange für nahe Null (Gleichgewicht)
+            } else if (normalized > 0) {
+                const intensity = Math.floor(155 + normalized * 100);
+                return `rgb(${255-intensity}, ${intensity}, 100)`; // Grün für positiv
+            } else {
+                const intensity = Math.floor(155 + Math.abs(normalized) * 100);
+                return `rgb(${intensity}, ${255-intensity}, 100)`; // Rot für negativ
+            }
+        }
+
+        function drawDirectionField(func) {
+            const step = 0.5;
+            const lineLength = 15;
+
+            // Erste Phase: Zeichne Gleichgewichtslinien (wo slope ≈ 0)
+            ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)';
+            ctx.lineWidth = 2;
+            for (let x = xMin; x <= xMax; x += 0.1) {
+                for (let y = yMin; y <= yMax; y += 0.1) {
+                    const slope = func(x, y);
+                    if (Math.abs(slope) < 0.05) {
+                        ctx.fillStyle = 'rgba(243, 156, 18, 0.4)';
+                        ctx.fillRect(toCanvasX(x) - 2, toCanvasY(y) - 2, 4, 4);
+                    }
+                }
+            }
+
+            // Zweite Phase: Zeichne Richtungspfeile
+            for (let x = xMin; x <= xMax; x += step) {
+                for (let y = yMin; y <= yMax; y += step) {
+                    const slope = func(x, y);
+
+                    // Begrenze extreme Steigungen
+                    const angle = Math.atan(slope);
+
+                    const dx = lineLength * Math.cos(angle);
+                    const dy = lineLength * Math.sin(angle);
+
+                    const cx = toCanvasX(x);
+                    const cy = toCanvasY(y);
+
+                    const color = getSlopeColor(slope);
+
+                    // Zeichne Pfeil statt einfacher Linie
+                    drawArrow(cx - dx/2, cy + dy/2, cx + dx/2, cy - dy/2, color, 1.5);
+                }
+            }
+        }
+
+        function solveDGL(func, x0, y0, direction = 1) {
+            const points = [{x: x0, y: y0}];
+            const h = 0.05 * direction; // Schrittweite
+            const maxSteps = 300;
+
+            let x = x0;
+            let y = y0;
+
+            for (let i = 0; i < maxSteps; i++) {
+                // Einfaches Euler-Verfahren
+                const slope = func(x, y);
+                y = y + h * slope;
+                x = x + h;
+
+                // Stoppe wenn außerhalb des Bereichs
+                if (x < xMin || x > xMax || y < yMin - 2 || y > yMax + 2 || Math.abs(y) > 100) {
+                    break;
+                }
+
+                points.push({x, y});
+            }
+
+            return points;
+        }
+
+        function drawSolution(points, showAnimatedPoint = false) {
+            if (points.length < 2) return;
+
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            for (let i = 0; i < points.length; i++) {
+                const cx = toCanvasX(points[i].x);
+                const cy = toCanvasY(points[i].y);
+
+                if (i === 0) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+
+            // Zeichne Startpunkt
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(toCanvasX(points[0].x), toCanvasY(points[0].y), 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Zeichne animierten Punkt
+            if (showAnimatedPoint && isAnimating) {
+                const idx = Math.floor((animationProgress % 1) * points.length);
+                const point = points[idx];
+
+                ctx.fillStyle = '#2563eb';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(toCanvasX(point.x), toCanvasY(point.y), 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+
+                // Zeichne den aktuellen Richtungspfeil an dieser Stelle hervorgehoben
+                const eqKey = equationSelect.value;
+                const slope = equations[eqKey].f(point.x, point.y);
+                const angle = Math.atan(slope);
+                const lineLength = 20;
+                const dx = lineLength * Math.cos(angle);
+                const dy = lineLength * Math.sin(angle);
+                const cx = toCanvasX(point.x);
+                const cy = toCanvasY(point.y);
+
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.7;
+                drawArrow(cx - dx/2, cy + dy/2, cx + dx/2, cy - dy/2, '#2563eb', 3);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function updateInterpretation() {
+            const eqKey = equationSelect.value;
+            const eqData = equations[eqKey];
+            const interp = document.getElementById('interpretation');
+
+            let html = `<h3>Interpretation: ${eqData.label}</h3>`;
+            html += `<p>${eqData.description}</p>`;
+
+            if (solutions.length > 0) {
+                const numCurves = solutions.filter(s => s.equation === eqKey).length;
+                html += `<p><strong>Aktuell gezeichnet:</strong> ${numCurves} Lösungskurve${numCurves !== 1 ? 'n' : ''}. `;
+                html += `Klicke auf weitere Punkte, um das Verhalten bei verschiedenen Anfangsbedingungen zu vergleichen.</p>`;
+            }
+
+            interp.innerHTML = html;
+        }
+
+        function draw() {
+            const eqKey = equationSelect.value;
+            const eqData = equations[eqKey];
+
+            document.getElementById('currentEq').textContent = eqData.label;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+            drawDirectionField(eqData.f);
+
+            // Zeichne gespeicherte Lösungen
+            let hasActiveSolution = false;
+            solutions.forEach((sol, idx) => {
+                if (sol.equation === eqKey) {
+                    // Nur die erste Lösung bekommt den animierten Punkt
+                    const showAnim = !hasActiveSolution && isAnimating;
+                    drawSolution(sol.points, showAnim);
+                    if (showAnim) hasActiveSolution = true;
+                }
+            });
+
+            updateInterpretation();
+        }
+
+        function toggleAnimation() {
+            isAnimating = !isAnimating;
+            const btn = document.getElementById('animBtn');
+
+            if (isAnimating) {
+                btn.textContent = 'Animation stoppen';
+                if (solutions.length === 0) {
+                    // Zeichne eine Beispielkurve wenn keine vorhanden
+                    addSolutionAt(0, 1);
+                }
+                animate();
+            } else {
+                btn.textContent = 'Animation starten';
+            }
+        }
+
+        function animate() {
+            if (!isAnimating) return;
+
+            animationProgress += 0.005;
+            draw();
+
+            requestAnimationFrame(animate);
+        }
+
+        function clearSolutions() {
+            solutions = [];
+            draw();
+        }
+
+        function loadExample(type) {
+            clearSolutions();
+
+            const eqData = equations[equationSelect.value];
+            const func = eqData.f;
+
+            let points = [];
+
+            switch(type) {
+                case 'growth':
+                    equationSelect.value = 'y';
+                    draw();
+                    // Zeichne Beispielkurven
+                    setTimeout(() => {
+                        addSolutionAt(0, 0.5);
+                        setTimeout(() => addSolutionAt(0, 1), 200);
+                        setTimeout(() => addSolutionAt(0, 2), 400);
+                    }, 100);
+                    break;
+
+                case 'decay':
+                    equationSelect.value = '-y';
+                    draw();
+                    setTimeout(() => {
+                        addSolutionAt(-2, 4);
+                        setTimeout(() => addSolutionAt(-2, 2), 200);
+                        setTimeout(() => addSolutionAt(-2, -2), 400);
+                    }, 100);
+                    break;
+
+                case 'logistic':
+                    equationSelect.value = '1-y';
+                    draw();
+                    setTimeout(() => {
+                        addSolutionAt(-3, 3);
+                        setTimeout(() => addSolutionAt(-3, 1), 200);
+                        setTimeout(() => addSolutionAt(-3, -1), 400);
+                    }, 100);
+                    break;
+
+                case 'oscillation':
+                    equationSelect.value = 'sin';
+                    draw();
+                    setTimeout(() => {
+                        addSolutionAt(-4, 0);
+                        setTimeout(() => addSolutionAt(-4, 2), 200);
+                        setTimeout(() => addSolutionAt(-4, -2), 400);
+                    }, 100);
+                    break;
+            }
+        }
+
+        function addSolutionAt(x0, y0) {
+            const eqKey = equationSelect.value;
+            const func = equations[eqKey].f;
+
+            // Löse in beide Richtungen
+            const pointsForward = solveDGL(func, x0, y0, 1);
+            const pointsBackward = solveDGL(func, x0, y0, -1);
+
+            const allPoints = [...pointsBackward.reverse(), ...pointsForward.slice(1)];
+
+            solutions.push({
+                equation: eqKey,
+                points: allPoints
+            });
+
+            draw();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+
+            const x0 = fromCanvasX(cx);
+            const y0 = fromCanvasY(cy);
+
+            addSolutionAt(x0, y0);
+        });
+
+        equationSelect.addEventListener('change', () => {
+            solutions = [];
+            draw();
+        });
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>

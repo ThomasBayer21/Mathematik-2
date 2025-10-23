@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phasenportrait - DGL Systeme</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #c0392b;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #c0392b;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            cursor: crosshair;
+        }
+        .description {
+            background: #fadbd8;
+            padding: 15px;
+            border-left: 4px solid #c0392b;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .system {
+            font-size: 18px;
+            font-weight: bold;
+            color: #c0392b;
+            text-align: center;
+            margin: 15px 0;
+            line-height: 1.8;
+            padding: 10px;
+            background: #fff5f5;
+            border-radius: 5px;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instruction {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #229954;
+        }
+        .eigenvalue-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 2px solid #f39c12;
+        }
+        .eigenvalue-box p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+            min-height: 60px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .stability-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+        .stable { background: #d4edda; color: #155724; }
+        .unstable { background: #f8d7da; color: #721c24; }
+        .neutral { background: #d1ecf1; color: #0c5460; }
+        .tips-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .tips-section h3 {
+            margin-top: 0;
+            color: #2563eb;
+            font-size: 16px;
+        }
+        .tips-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tips-section li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Phasenportrait: DGL-Systeme 2×2</h1>
+
+        <div class="description">
+            <strong>Was ist ein Phasenportrait?</strong> Ein Phasenportrait visualisiert das Verhalten eines Systems von Differentialgleichungen.
+            Jeder Punkt (y₁, y₂) im Phasenraum repräsentiert einen Systemzustand, und die Trajektorien zeigen, wie sich der Zustand über die Zeit entwickelt.
+            <br><br>
+            <strong>System:</strong> y' = Ay mit A = 2×2 Matrix
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('saddle')">Sattelpunkt</button>
+            <button class="example-btn" onclick="loadExample('stable-node')">Stabiler Knoten</button>
+            <button class="example-btn" onclick="loadExample('unstable-node')">Instabiler Knoten</button>
+            <button class="example-btn" onclick="loadExample('stable-spiral')">Stabile Spirale</button>
+            <button class="example-btn" onclick="loadExample('unstable-spiral')">Instabile Spirale</button>
+            <button class="example-btn" onclick="loadExample('center')">Zentrum</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Wähle System-Typ:</label>
+                <select id="systemType">
+                    <option value="saddle">Sattelpunkt</option>
+                    <option value="stable-node">Stabiler Knoten</option>
+                    <option value="unstable-node">Instabiler Knoten</option>
+                    <option value="stable-spiral">Stabile Spirale</option>
+                    <option value="unstable-spiral">Instabile Spirale</option>
+                    <option value="center">Zentrum</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Aktionen:</label>
+                <button onclick="clearTrajectories()">Trajektorien löschen</button>
+            </div>
+        </div>
+
+        <div class="system" id="systemEq">y₁' = y₁ + y₂<br>y₂' = y₂</div>
+
+        <canvas id="canvas" width="700" height="700"></canvas>
+
+        <div class="instruction">
+            <strong>Interaktion:</strong> Klicke auf das Phasenportrait, um Trajektorien von verschiedenen Startpunkten zu zeichnen.
+            Die roten Pfeile zeigen das Vektorfeld (Richtung und Geschwindigkeit) an jedem Punkt.
+        </div>
+
+        <div class="interpretation" id="interpretation">
+            <h3>Interpretation</h3>
+            <p>Wähle ein System und klicke ins Feld, um Trajektorien zu sehen.</p>
+        </div>
+
+        <div class="info">
+            <div class="eigenvalue-box">
+                <p><strong>Matrix A:</strong></p>
+                <p id="matrixA" style="font-family: monospace;"></p>
+                <p><strong>Eigenwerte:</strong> <span id="eigenvalues">0</span></p>
+                <p><strong>Typ:</strong> <span id="typeInfo">0</span></p>
+                <p><strong>Stabilität:</strong> <span id="stability"></span></p>
+            </div>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tipps zum Verständnis von Phasenportraits</h3>
+            <ul>
+                <li><strong>Achsen:</strong> y₁ (horizontal) und y₂ (vertikal) beschreiben den Zustand des Systems</li>
+                <li><strong>Vektorfeld:</strong> Die roten Pfeile zeigen, in welche Richtung sich das System von jedem Punkt aus bewegt</li>
+                <li><strong>Trajektorien:</strong> Pfade, die das System über die Zeit nimmt - gezeichnet durch Klicken auf Startpunkte</li>
+                <li><strong>Ursprung (0,0):</strong> Der Gleichgewichtspunkt - wo dy₁/dt = dy₂/dt = 0</li>
+                <li><strong>Eigenwerte bestimmen alles:</strong> Die Art und Lage der Eigenwerte entscheiden über das Systemverhalten:
+                    <ul>
+                        <li><strong>Beide reell und negativ:</strong> Stabiler Knoten → Alles läuft zum Ursprung</li>
+                        <li><strong>Beide reell und positiv:</strong> Instabiler Knoten → Alles läuft weg</li>
+                        <li><strong>Verschiedene Vorzeichen:</strong> Sattelpunkt → Kommt an und läuft weg</li>
+                        <li><strong>Komplex mit Re < 0:</strong> Stabile Spirale → Spiralt rein</li>
+                        <li><strong>Komplex mit Re > 0:</strong> Instabile Spirale → Spiralt raus</li>
+                        <li><strong>Rein imaginär:</strong> Zentrum → Geschlossene Bahnen</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tips-section" style="background: #f8fafc;">
+            <h3>Anwendungen von DGL-Systemen</h3>
+            <ul>
+                <li><strong>Räuber-Beute-Modelle:</strong> Population von Raubtieren und Beute (Lotka-Volterra)</li>
+                <li><strong>Gekoppelte Schwingungen:</strong> Zwei verbundene Pendel oder Federn</li>
+                <li><strong>Chemische Reaktionen:</strong> Konzentration mehrerer reagierender Stoffe</li>
+                <li><strong>Elektrische Schaltkreise:</strong> RLC-Kreise mit mehreren Komponenten</li>
+                <li><strong>Epidemiologie:</strong> SIR-Modelle für Krankheitsausbreitung</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const systemSelect = document.getElementById('systemType');
+
+        const range = 5;
+        let trajectories = [];
+
+        const systems = {
+            'saddle': {
+                matrix: [[1, 0], [0, -1]],
+                name: 'Sattelpunkt',
+                description: 'Instabil - Trajektorien nähern sich entlang einer Richtung an und entfernen sich entlang einer anderen',
+                eigenvalues: 'λ₁ = 1, λ₂ = -1',
+                stability: 'unstable',
+                interpretation: 'Ein Sattelpunkt ist immer instabil. Trajektorien werden entlang der stabilen Richtung (Eigenvektor zu λ₂ < 0) angezogen, aber entlang der instabilen Richtung (Eigenvektor zu λ₁ > 0) abgestoßen. Wie ein Sattel: stabil in eine Richtung, instabil in die andere.'
+            },
+            'stable-node': {
+                matrix: [[-1, 0], [0, -2]],
+                name: 'Stabiler Knoten',
+                description: 'Stabil - Alle Trajektorien konvergieren zum Ursprung',
+                eigenvalues: 'λ₁ = -1, λ₂ = -2',
+                stability: 'stable',
+                interpretation: 'Beide Eigenwerte sind negativ → Das System kehrt immer zum Gleichgewicht (Ursprung) zurück. Die Trajektorien nähern sich schneller entlang der Richtung mit dem größeren (negativeren) Eigenwert. Beispiel: Gedämpftes System ohne Oszillation.'
+            },
+            'unstable-node': {
+                matrix: [[1, 0], [0, 2]],
+                name: 'Instabiler Knoten',
+                description: 'Instabil - Alle Trajektorien divergieren vom Ursprung',
+                eigenvalues: 'λ₁ = 1, λ₂ = 2',
+                stability: 'unstable',
+                interpretation: 'Beide Eigenwerte sind positiv → Das System läuft vom Gleichgewicht weg. Jede kleine Störung wächst exponentiell an. Die Trajektorien entfernen sich schneller entlang der Richtung mit dem größeren Eigenwert.'
+            },
+            'stable-spiral': {
+                matrix: [[-0.5, 2], [-2, -0.5]],
+                name: 'Stabile Spirale',
+                description: 'Stabil - Trajektorien spiralen zum Ursprung',
+                eigenvalues: 'λ₁,₂ = -0.5 ± 2i',
+                stability: 'stable',
+                interpretation: 'Komplexe Eigenwerte mit negativem Realteil → Das System oszilliert und konvergiert gleichzeitig. Die Trajektorien spiralen einwärts. Der Realteil bestimmt die Dämpfung, der Imaginärteil die Frequenz. Beispiel: Gedämpfte Schwingung.'
+            },
+            'unstable-spiral': {
+                matrix: [[0.3, 2], [-2, 0.3]],
+                name: 'Instabile Spirale',
+                description: 'Instabil - Trajektorien spiralen vom Ursprung weg',
+                eigenvalues: 'λ₁,₂ = 0.3 ± 2i',
+                stability: 'unstable',
+                interpretation: 'Komplexe Eigenwerte mit positivem Realteil → Das System oszilliert mit wachsender Amplitude. Die Trajektorien spiralen auswärts. Jede Störung führt zu unbegrenztem Wachstum mit Oszillation.'
+            },
+            'center': {
+                matrix: [[0, 1], [-1, 0]],
+                name: 'Zentrum',
+                description: 'Neutral stabil - Geschlossene Bahnen (Ellipsen)',
+                eigenvalues: 'λ₁,₂ = ±i',
+                stability: 'neutral',
+                interpretation: 'Rein imaginäre Eigenwerte (Realteil = 0) → Geschlossene, periodische Bahnen ohne Dämpfung. Das System schwingt mit konstanter Amplitude. Beispiel: Ideales Pendel ohne Reibung, harmonischer Oszillator.'
+            }
+        };
+
+        function toCanvasX(x) {
+            return canvas.width / 2 + (x / range) * (canvas.width / 2 - 50);
+        }
+
+        function toCanvasY(y) {
+            return canvas.height / 2 - (y / range) * (canvas.height / 2 - 50);
+        }
+
+        function fromCanvasX(cx) {
+            return (cx - canvas.width / 2) * range / (canvas.width / 2 - 50);
+        }
+
+        function fromCanvasY(cy) {
+            return -(cy - canvas.height / 2) * range / (canvas.height / 2 - 50);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+
+            for (let i = -range; i <= range; i++) {
+                // Vertikale Linien
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(i), 0);
+                ctx.lineTo(toCanvasX(i), canvas.height);
+                ctx.stroke();
+
+                // Horizontale Linien
+                ctx.beginPath();
+                ctx.moveTo(0, toCanvasY(i));
+                ctx.lineTo(canvas.width, toCanvasY(i));
+                ctx.stroke();
+            }
+
+            // Achsen
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // y₁-Achse
+            ctx.beginPath();
+            ctx.moveTo(0, toCanvasY(0));
+            ctx.lineTo(canvas.width, toCanvasY(0));
+            ctx.stroke();
+
+            // y₂-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), 0);
+            ctx.lineTo(toCanvasX(0), canvas.height);
+            ctx.stroke();
+
+            // Beschriftungen
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('y₁', canvas.width - 30, toCanvasY(0) + 20);
+            ctx.fillText('y₂', toCanvasX(0) + 10, 20);
+        }
+
+        function matrixMultiply(A, y) {
+            return [
+                A[0][0] * y[0] + A[0][1] * y[1],
+                A[1][0] * y[0] + A[1][1] * y[1]
+            ];
+        }
+
+        function drawVectorField(A) {
+            const step = 0.7;
+            const arrowLength = 20;
+
+            for (let x = -range; x <= range; x += step) {
+                for (let y = -range; y <= range; y += step) {
+                    const y_vec = [x, y];
+                    const dy = matrixMultiply(A, y_vec);
+
+                    const magnitude = Math.sqrt(dy[0] * dy[0] + dy[1] * dy[1]);
+                    if (magnitude < 0.01) continue;
+
+                    const scale = arrowLength / (magnitude + 1);
+                    const dx_scaled = dy[0] * scale;
+                    const dy_scaled = dy[1] * scale;
+
+                    const cx = toCanvasX(x);
+                    const cy = toCanvasY(y);
+
+                    ctx.strokeStyle = 'rgba(192, 57, 43, 0.4)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + dx_scaled, cy - dy_scaled);
+                    ctx.stroke();
+
+                    // Pfeilspitze
+                    const angle = Math.atan2(-dy_scaled, dx_scaled);
+                    const headlen = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(cx + dx_scaled, cy - dy_scaled);
+                    ctx.lineTo(
+                        cx + dx_scaled - headlen * Math.cos(angle - Math.PI / 6),
+                        cy - dy_scaled + headlen * Math.sin(angle - Math.PI / 6)
+                    );
+                    ctx.moveTo(cx + dx_scaled, cy - dy_scaled);
+                    ctx.lineTo(
+                        cx + dx_scaled - headlen * Math.cos(angle + Math.PI / 6),
+                        cy - dy_scaled + headlen * Math.sin(angle + Math.PI / 6)
+                    );
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function solveSystem(A, y0, direction = 1) {
+            const points = [y0];
+            const h = 0.05 * direction;
+            const maxSteps = 500;
+
+            let y = [...y0];
+
+            for (let i = 0; i < maxSteps; i++) {
+                // RK4
+                const k1 = matrixMultiply(A, y);
+                const k2 = matrixMultiply(A, [y[0] + h * k1[0] / 2, y[1] + h * k1[1] / 2]);
+                const k3 = matrixMultiply(A, [y[0] + h * k2[0] / 2, y[1] + h * k2[1] / 2]);
+                const k4 = matrixMultiply(A, [y[0] + h * k3[0], y[1] + h * k3[1]]);
+
+                y[0] += h * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]) / 6;
+                y[1] += h * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]) / 6;
+
+                if (Math.abs(y[0]) > range * 2 || Math.abs(y[1]) > range * 2) break;
+
+                points.push([...y]);
+            }
+
+            return points;
+        }
+
+        function drawTrajectory(points, color = '#2563eb') {
+            if (points.length < 2) return;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            for (let i = 0; i < points.length; i++) {
+                const cx = toCanvasX(points[i][0]);
+                const cy = toCanvasY(points[i][1]);
+
+                if (i === 0) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+
+            // Startpunkt
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(toCanvasX(points[0][0]), toCanvasY(points[0][1]), 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function updateInterpretation(sysData) {
+            const interp = document.getElementById('interpretation');
+
+            let html = `<h3>Interpretation: ${sysData.name}</h3>`;
+            html += `<p>${sysData.interpretation}</p>`;
+
+            if (trajectories.length > 0) {
+                const numTraj = trajectories.filter(t => t.system === systemSelect.value).length;
+                html += `<p><strong>Aktuell gezeichnet:</strong> ${numTraj} Trajektorie${numTraj !== 1 ? 'n' : ''}. `;
+                html += `Klicke auf weitere Punkte, um das Verhalten bei verschiedenen Anfangsbedingungen zu vergleichen.</p>`;
+            }
+
+            interp.innerHTML = html;
+        }
+
+        function clearTrajectories() {
+            trajectories = [];
+            draw();
+        }
+
+        function draw() {
+            const sysKey = systemSelect.value;
+            const sysData = systems[sysKey];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+            drawVectorField(sysData.matrix);
+
+            trajectories.forEach(traj => {
+                if (traj.system === sysKey) {
+                    drawTrajectory(traj.points);
+                }
+            });
+
+            // Update info
+            const [[a11, a12], [a21, a22]] = sysData.matrix;
+            document.getElementById('systemEq').innerHTML =
+                `y₁' = ${a11}y₁ ${a12 >= 0 ? '+' : ''}${a12}y₂<br>` +
+                `y₂' = ${a21}y₁ ${a22 >= 0 ? '+' : ''}${a22}y₂`;
+
+            document.getElementById('matrixA').innerHTML =
+                `[${a11.toFixed(1)}  ${a12.toFixed(1)}]<br>[${a21.toFixed(1)}  ${a22.toFixed(1)}]`;
+
+            document.getElementById('eigenvalues').textContent = sysData.eigenvalues;
+            document.getElementById('typeInfo').textContent = `${sysData.name} - ${sysData.description}`;
+
+            // Stability indicator
+            const stabilityMap = {
+                'stable': '<span class="stability-indicator stable">Stabil</span>',
+                'unstable': '<span class="stability-indicator unstable">Instabil</span>',
+                'neutral': '<span class="stability-indicator neutral">Neutral stabil</span>'
+            };
+            document.getElementById('stability').innerHTML = stabilityMap[sysData.stability];
+
+            updateInterpretation(sysData);
+        }
+
+        function loadExample(type) {
+            systemSelect.value = type;
+            trajectories = [];
+            draw();
+
+            // Zeichne automatisch ein paar Beispiel-Trajektorien
+            const examples = {
+                'saddle': [[2, 0.5], [0.5, 2], [-2, -0.5]],
+                'stable-node': [[3, 2], [-2, 3], [3, -2]],
+                'unstable-node': [[0.5, 0.5], [-0.5, 0.5], [0.5, -0.5]],
+                'stable-spiral': [[3, 0], [0, 3], [-2, 2]],
+                'unstable-spiral': [[0.5, 0], [0, 0.5], [-0.3, 0.3]],
+                'center': [[2, 0], [0, 2], [1.5, 1.5]]
+            };
+
+            const points = examples[type] || [];
+            const A = systems[type].matrix;
+
+            points.forEach((y0, i) => {
+                setTimeout(() => {
+                    const pointsForward = solveSystem(A, y0, 1);
+                    const pointsBackward = solveSystem(A, y0, -1);
+                    const allPoints = [...pointsBackward.reverse(), ...pointsForward.slice(1)];
+
+                    trajectories.push({
+                        system: type,
+                        points: allPoints
+                    });
+                    draw();
+                }, i * 200);
+            });
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+
+            const y0 = [fromCanvasX(cx), fromCanvasY(cy)];
+
+            const sysKey = systemSelect.value;
+            const A = systems[sysKey].matrix;
+
+            const pointsForward = solveSystem(A, y0, 1);
+            const pointsBackward = solveSystem(A, y0, -1);
+
+            const allPoints = [...pointsBackward.reverse(), ...pointsForward.slice(1)];
+
+            trajectories.push({
+                system: sysKey,
+                points: allPoints
+            });
+
+            draw();
+        });
+
+        systemSelect.addEventListener('change', () => {
+            trajectories = [];
+            draw();
+        });
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euler vs RK4 Vergleich</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #10b981;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #10b981;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #e8f8f5;
+            padding: 15px;
+            border-left: 4px solid #10b981;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 30px;
+            height: 3px;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .error-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .error-box {
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .euler-error {
+            background: #ffe6e6;
+            border: 2px solid #e74c3c;
+        }
+        .rk4-error {
+            background: #e6ffe6;
+            border: 2px solid #27ae60;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+            min-height: 60px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .accuracy-comparison {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .accuracy-bar {
+            flex: 1;
+            height: 30px;
+            background: linear-gradient(to right, #e74c3c 0%, #e74c3c 50%, #27ae60 50%, #27ae60 100%);
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .accuracy-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .tips-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .tips-section h3 {
+            margin-top: 0;
+            color: #2563eb;
+            font-size: 16px;
+        }
+        .tips-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tips-section li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .method-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .method-box {
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid;
+        }
+        .method-box h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .method-box ul {
+            margin: 5px 0;
+            padding-left: 20px;
+            font-size: 13px;
+        }
+        .step-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 5px;
+        }
+        .step-btn {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .step-btn:hover {
+            background: #1e40af;
+        }
+        .step-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .step-info {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Numerische Methoden: Euler vs Runge-Kutta 4</h1>
+
+        <div class="description">
+            <strong>Was sind numerische Methoden?</strong> Viele Differentialgleichungen haben keine analytische Lösung. Numerische Methoden approximieren die Lösung durch schrittweise Berechnung.
+            <br><br>
+            <strong>Vergleich:</strong> Diese Visualisierung zeigt, wie genau verschiedene Methoden sind. RK4 ist aufwendiger, aber deutlich genauer als Euler.
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('large-error')">Große Schritte (viel Fehler)</button>
+            <button class="example-btn" onclick="loadExample('medium')">Mittlere Schritte</button>
+            <button class="example-btn" onclick="loadExample('small-error')">Kleine Schritte (wenig Fehler)</button>
+            <button class="example-btn" onclick="loadExample('fast-growth')">Schnelles Wachstum</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>DGL: y' = f(x, y)</label>
+                <select id="equation">
+                    <option value="y">y' = y</option>
+                    <option value="-y">y' = -y</option>
+                    <option value="x">y' = x</option>
+                    <option value="xy">y' = x·y</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Schrittweite (h): <span id="stepValue">0.5</span></label>
+                <input type="range" id="stepSize" min="0.1" max="1.0" step="0.1" value="0.5">
+            </div>
+
+            <div class="control-group">
+                <label>Anfangswert y(0): <span id="y0Value">1</span></label>
+                <input type="range" id="y0" min="0.5" max="2" step="0.1" value="1">
+            </div>
+        </div>
+
+        <div class="step-controls">
+            <button class="step-btn" onclick="toggleStepMode()" id="stepModeBtn">Schritt-für-Schritt Modus</button>
+            <button class="step-btn" onclick="prevStep()" id="prevBtn" disabled>Zurück</button>
+            <span class="step-info" id="stepInfo">Vollständige Darstellung</span>
+            <button class="step-btn" onclick="nextStep()" id="nextBtn" disabled>Weiter</button>
+            <button class="step-btn" onclick="toggleErrorLines()" id="errorLinesBtn">Fehlerlinien ein/aus</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2ecc71; height: 4px;"></div>
+                <span><strong>Exakte Lösung</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c; height: 4px;"></div>
+                <span><strong>Euler-Verfahren (O(h))</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2563eb; height: 4px;"></div>
+                <span><strong>Runge-Kutta 4 (O(h⁴))</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(231, 76, 60, 0.3); height: 10px; width: 20px; border: 1px dashed #e74c3c;"></div>
+                <span>Fehlerbereich</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="800" height="500"></canvas>
+
+        <div class="info">
+            <strong>Fehler bei x = 5:</strong>
+            <div class="error-display">
+                <div class="error-box euler-error">
+                    <div><strong>Euler-Verfahren</strong></div>
+                    <div id="eulerError" style="font-size: 20px; margin-top: 5px;">0</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Absoluter Fehler</div>
+                </div>
+                <div class="error-box rk4-error">
+                    <div><strong>Runge-Kutta 4</strong></div>
+                    <div id="rk4Error" style="font-size: 20px; margin-top: 5px;">0</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Absoluter Fehler</div>
+                </div>
+            </div>
+            <div class="accuracy-comparison">
+                <span class="accuracy-label">Weniger genau</span>
+                <div class="accuracy-bar" id="accuracyBar"></div>
+                <span class="accuracy-label">Genauer</span>
+            </div>
+            <div style="text-align: center; margin-top: 10px; font-weight: bold;" id="accuracyText"></div>
+        </div>
+
+        <div class="interpretation" id="interpretation">
+            <h3>Interpretation</h3>
+            <p>Passe die Parameter an, um die Unterschiede zu sehen.</p>
+        </div>
+
+        <div class="method-comparison">
+            <div class="method-box" style="border-color: #e74c3c;">
+                <h4 style="color: #e74c3c;">Euler-Verfahren</h4>
+                <ul>
+                    <li>Einfachste Methode</li>
+                    <li>Nur eine Steigungsauswertung pro Schritt</li>
+                    <li>Fehler: O(h) - linear</li>
+                    <li>Schnell, aber ungenau</li>
+                    <li>Formel: y_{n+1} = y_n + h·f(x_n, y_n)</li>
+                </ul>
+            </div>
+            <div class="method-box" style="border-color: #2563eb;">
+                <h4 style="color: #2563eb;">Runge-Kutta 4</h4>
+                <ul>
+                    <li>Standard-Methode in der Praxis</li>
+                    <li>Vier Steigungsauswertungen pro Schritt</li>
+                    <li>Fehler: O(h⁴) - quartisch</li>
+                    <li>Aufwendiger, aber viel genauer</li>
+                    <li>Gewichteter Mittelwert von 4 Steigungen</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tipps zum Verständnis numerischer Methoden</h3>
+            <ul>
+                <li><strong>Schrittweite h:</strong> Je kleiner h, desto genauer - aber auch mehr Rechenaufwand. Das ist der zentrale Trade-off.</li>
+                <li><strong>Fehlerordnung O(h):</strong> Bei Euler halbiert sich der Fehler, wenn h halbiert wird. Bei RK4 wird er 16× kleiner!</li>
+                <li><strong>Visuelle Inspektion:</strong> Schau dir an, wie die roten/blauen Punkte von der grünen Kurve abweichen.</li>
+                <li><strong>Große Schritte:</strong> Euler weicht stark ab, RK4 bleibt oft nah an der exakten Lösung.</li>
+                <li><strong>Praxisrelevanz:</strong> Für reale Probleme ohne exakte Lösung ist RK4 die Standardwahl.</li>
+                <li><strong>Rechenaufwand:</strong> RK4 benötigt 4× so viele Funktionsauswertungen wie Euler, ist aber viel genauer.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const equationSelect = document.getElementById('equation');
+        const stepSlider = document.getElementById('stepSize');
+        const stepValue = document.getElementById('stepValue');
+        const y0Slider = document.getElementById('y0');
+        const y0Value = document.getElementById('y0Value');
+
+        const xMin = 0, xMax = 5;
+        const yMin = 0, yMax = 20;
+
+        let stepMode = false;
+        let currentStep = 0;
+        let maxSteps = 0;
+        let showErrorLines = true;
+
+        const equations = {
+            'y': {
+                f: (x, y) => y,
+                exact: (x, y0) => y0 * Math.exp(x),
+                name: "y' = y",
+                description: "Exponentielles Wachstum - Fehler wachsen exponentiell mit."
+            },
+            '-y': {
+                f: (x, y) => -y,
+                exact: (x, y0) => y0 * Math.exp(-x),
+                name: "y' = -y",
+                description: "Exponentieller Zerfall - Fehler werden schnell klein."
+            },
+            'x': {
+                f: (x, y) => x,
+                exact: (x, y0) => x * x / 2 + y0,
+                name: "y' = x",
+                description: "Lineares Wachstum - RK4 ist fast perfekt, da die Lösung polynomial ist."
+            },
+            'xy': {
+                f: (x, y) => x * y,
+                exact: (x, y0) => y0 * Math.exp(x * x / 2),
+                name: "y' = x·y",
+                description: "Sehr schnelles Wachstum - Fehler werden besonders deutlich sichtbar."
+            }
+        };
+
+        function toCanvasX(x) {
+            const padding = 50;
+            return padding + (x - xMin) / (xMax - xMin) * (canvas.width - 2 * padding);
+        }
+
+        function toCanvasY(y) {
+            const padding = 50;
+            return canvas.height - padding - (y - yMin) / (yMax - yMin) * (canvas.height - 2 * padding);
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(xMin), toCanvasY(yMin));
+            ctx.lineTo(toCanvasX(xMax), toCanvasY(yMin));
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(xMin), toCanvasY(yMin));
+            ctx.lineTo(toCanvasX(xMin), toCanvasY(yMax));
+            ctx.stroke();
+
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', toCanvasX(xMax) - 10, toCanvasY(0) + 20);
+            ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(yMax) + 15);
+
+            // Markierungen
+            for (let x = 0; x <= xMax; x++) {
+                ctx.fillText(x.toString(), toCanvasX(x) - 5, toCanvasY(0) + 20);
+            }
+        }
+
+        function eulerMethod(f, x0, y0, xEnd, h) {
+            const points = [{x: x0, y: y0}];
+            let x = x0;
+            let y = y0;
+
+            while (x < xEnd) {
+                y = y + h * f(x, y);
+                x = x + h;
+                points.push({x, y});
+            }
+
+            return points;
+        }
+
+        function rk4Method(f, x0, y0, xEnd, h) {
+            const points = [{x: x0, y: y0}];
+            let x = x0;
+            let y = y0;
+
+            while (x < xEnd) {
+                const k1 = h * f(x, y);
+                const k2 = h * f(x + h/2, y + k1/2);
+                const k3 = h * f(x + h/2, y + k2/2);
+                const k4 = h * f(x + h, y + k3);
+
+                y = y + (k1 + 2*k2 + 2*k3 + k4) / 6;
+                x = x + h;
+                points.push({x, y});
+            }
+
+            return points;
+        }
+
+        function drawErrorLine(x, yExact, yApprox, color) {
+            if (yExact > yMax || yApprox > yMax || yExact < yMin || yApprox < yMin) return;
+
+            const cx = toCanvasX(x);
+            const cy1 = toCanvasY(yExact);
+            const cy2 = toCanvasY(yApprox);
+
+            ctx.strokeStyle = color;
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy1);
+            ctx.lineTo(cx, cy2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1;
+
+            // Zeichne Fehlerbereich
+            ctx.fillStyle = color === '#e74c3c' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(37, 99, 235, 0.2)';
+            const width = 3;
+            ctx.fillRect(cx - width, Math.min(cy1, cy2), width * 2, Math.abs(cy1 - cy2));
+        }
+
+        function drawSolution(points, color, lineWidth = 2, maxPoints = null) {
+            if (points.length < 2) return;
+
+            const pointsToDraw = maxPoints ? points.slice(0, maxPoints + 1) : points;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            for (let i = 0; i < pointsToDraw.length; i++) {
+                if (pointsToDraw[i].y > yMax || pointsToDraw[i].y < yMin) continue;
+
+                const cx = toCanvasX(pointsToDraw[i].x);
+                const cy = toCanvasY(pointsToDraw[i].y);
+
+                if (i === 0) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+
+            // Zeichne Punkte für numerische Methoden
+            if (color !== '#2ecc71') {
+                ctx.fillStyle = color;
+                pointsToDraw.forEach((p, idx) => {
+                    if (p.y <= yMax && p.y >= yMin) {
+                        const radius = (stepMode && idx === pointsToDraw.length - 1) ? 6 : 4;
+                        ctx.beginPath();
+                        ctx.arc(toCanvasX(p.x), toCanvasY(p.y), radius, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        // Highlight aktuellen Punkt im Step-Mode
+                        if (stepMode && idx === pointsToDraw.length - 1) {
+                            ctx.strokeStyle = 'white';
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateInterpretation(h, eulerError, rk4Error, eqData) {
+            const interp = document.getElementById('interpretation');
+            const ratio = eulerError / Math.max(rk4Error, 0.000001);
+
+            let html = `<h3>Interpretation: ${eqData.name}</h3>`;
+            html += `<p>${eqData.description}</p>`;
+
+            if (h >= 0.8) {
+                html += `<p><strong>Große Schrittweite (h=${h}):</strong> Der Euler-Fehler ist sehr groß. `;
+                html += `RK4 ist hier ${ratio.toFixed(0)}× genauer als Euler! `;
+                html += `Die blaue Kurve bleibt viel näher an der grünen exakten Lösung.</p>`;
+            } else if (h >= 0.4) {
+                html += `<p><strong>Mittlere Schrittweite (h=${h}):</strong> Beide Methoden zeigen Fehler, aber RK4 ist immer noch `;
+                html += `${ratio.toFixed(0)}× genauer. Für praktische Anwendungen ist diese Genauigkeit oft ausreichend.</p>`;
+            } else {
+                html += `<p><strong>Kleine Schrittweite (h=${h}):</strong> Bei kleinen Schritten sind beide Methoden recht genau. `;
+                html += `RK4 ist ${ratio.toFixed(0)}× genauer und fast perfekt. `;
+                html += `Beachte: Mehr Schritte = mehr Rechenzeit!</p>`;
+            }
+
+            if (rk4Error < 0.01) {
+                html += `<p><strong>RK4 ist praktisch perfekt</strong> - der Fehler ist kaum sichtbar!</p>`;
+            }
+
+            interp.innerHTML = html;
+
+            // Update accuracy text
+            const accuracyText = document.getElementById('accuracyText');
+            accuracyText.textContent = `RK4 ist ${ratio.toFixed(1)}× genauer als Euler`;
+            accuracyText.style.color = ratio > 100 ? '#27ae60' : ratio > 10 ? '#f39c12' : '#e67e22';
+        }
+
+        function draw() {
+            const eqKey = equationSelect.value;
+            const eqData = equations[eqKey];
+            const h = parseFloat(stepSlider.value);
+            const y0 = parseFloat(y0Slider.value);
+
+            stepValue.textContent = h.toFixed(1);
+            y0Value.textContent = y0.toFixed(1);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes();
+
+            // Exakte Lösung
+            const exactPoints = [];
+            for (let x = xMin; x <= xMax; x += 0.01) {
+                exactPoints.push({x, y: eqData.exact(x, y0)});
+            }
+            drawSolution(exactPoints, '#2ecc71', 3);
+
+            // Euler
+            const eulerPoints = eulerMethod(eqData.f, xMin, y0, xMax, h);
+            const rk4Points = rk4Method(eqData.f, xMin, y0, xMax, h);
+
+            maxSteps = eulerPoints.length - 1;
+
+            const pointsToShow = stepMode ? currentStep : null;
+
+            // Zeichne Fehlerlinien wenn aktiviert
+            if (showErrorLines && !stepMode) {
+                eulerPoints.forEach((p, idx) => {
+                    if (idx > 0) {
+                        const exactY = eqData.exact(p.x, y0);
+                        drawErrorLine(p.x, exactY, p.y, '#e74c3c');
+                    }
+                });
+                rk4Points.forEach((p, idx) => {
+                    if (idx > 0) {
+                        const exactY = eqData.exact(p.x, y0);
+                        drawErrorLine(p.x, exactY, p.y, '#2563eb');
+                    }
+                });
+            }
+
+            // Zeichne Lösungen
+            drawSolution(eulerPoints, '#e74c3c', 2, pointsToShow);
+            drawSolution(rk4Points, '#2563eb', 2, pointsToShow);
+
+            // Im Step-Mode: Zeichne Fehlerlinien für aktuellen Schritt
+            if (stepMode && currentStep > 0) {
+                const eulerP = eulerPoints[currentStep];
+                const rk4P = rk4Points[currentStep];
+                const exactYEuler = eqData.exact(eulerP.x, y0);
+                const exactYRK4 = eqData.exact(rk4P.x, y0);
+                drawErrorLine(eulerP.x, exactYEuler, eulerP.y, '#e74c3c');
+                drawErrorLine(rk4P.x, exactYRK4, rk4P.y, '#2563eb');
+            }
+
+            // Fehlerberechnung am Ende
+            const exactEnd = eqData.exact(xMax, y0);
+            const eulerEnd = eulerPoints[eulerPoints.length - 1].y;
+            const rk4End = rk4Points[rk4Points.length - 1].y;
+
+            const eulerError = Math.abs(exactEnd - eulerEnd);
+            const rk4Error = Math.abs(exactEnd - rk4End);
+
+            document.getElementById('eulerError').textContent = eulerError.toFixed(6);
+            document.getElementById('rk4Error').textContent = rk4Error.toFixed(6);
+
+            updateInterpretation(h, eulerError, rk4Error, eqData);
+        }
+
+        function toggleStepMode() {
+            stepMode = !stepMode;
+            const btn = document.getElementById('stepModeBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const stepInfo = document.getElementById('stepInfo');
+
+            if (stepMode) {
+                btn.textContent = 'Vollständige Ansicht';
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+                currentStep = 1;
+                stepInfo.textContent = `Schritt ${currentStep} von ${maxSteps}`;
+            } else {
+                btn.textContent = 'Schritt-für-Schritt Modus';
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                stepInfo.textContent = 'Vollständige Darstellung';
+            }
+
+            draw();
+        }
+
+        function nextStep() {
+            if (currentStep < maxSteps) {
+                currentStep++;
+                document.getElementById('stepInfo').textContent = `Schritt ${currentStep} von ${maxSteps}`;
+                draw();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                document.getElementById('stepInfo').textContent = `Schritt ${currentStep} von ${maxSteps}`;
+                draw();
+            }
+        }
+
+        function toggleErrorLines() {
+            showErrorLines = !showErrorLines;
+            const btn = document.getElementById('errorLinesBtn');
+            btn.textContent = showErrorLines ? 'Fehlerlinien aus' : 'Fehlerlinien ein';
+            draw();
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'large-error':
+                    stepSlider.value = 1.0;
+                    equationSelect.value = 'y';
+                    y0Slider.value = 1;
+                    break;
+                case 'medium':
+                    stepSlider.value = 0.5;
+                    equationSelect.value = 'y';
+                    y0Slider.value = 1;
+                    break;
+                case 'small-error':
+                    stepSlider.value = 0.2;
+                    equationSelect.value = 'y';
+                    y0Slider.value = 1;
+                    break;
+                case 'fast-growth':
+                    stepSlider.value = 0.5;
+                    equationSelect.value = 'xy';
+                    y0Slider.value = 1;
+                    break;
+            }
+            draw();
+        }
+
+        equationSelect.addEventListener('change', draw);
+        stepSlider.addEventListener('input', draw);
+        y0Slider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>

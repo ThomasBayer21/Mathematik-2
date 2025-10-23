@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DGL 2. Ordnung - Schwingungen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        canvas {
+            border: 2px solid #8e44ad;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 4px solid #8e44ad;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .equation {
+            font-size: 20px;
+            font-weight: bold;
+            color: #8e44ad;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f4fc;
+            border-radius: 5px;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .type-label {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .underdamped {
+            background: #d4edda;
+            color: #155724;
+        }
+        .critical {
+            background: #f8fafc;
+            color: #64748b;
+        }
+        .overdamped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+            min-height: 60px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .tips-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .tips-section h3 {
+            margin-top: 0;
+            color: #2563eb;
+            font-size: 16px;
+        }
+        .tips-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tips-section li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .physical-meaning {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .physical-meaning h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .canvas-container {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .canvas-wrapper {
+            text-align: center;
+        }
+        .canvas-title {
+            font-weight: bold;
+            color: #8e44ad;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .animation-control {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .anim-btn {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+        .anim-btn:hover {
+            background: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DGL 2. Ordnung: Gedämpfte Schwingungen</h1>
+
+        <div class="description">
+            <strong>Physikalisches Modell:</strong> Masse-Feder-Dämpfer System
+            <br><br>
+            <strong>DGL:</strong> my'' + cy' + ky = 0
+            <br>
+            <strong>m</strong> = Masse, <strong>c</strong> = Dämpfungskoeffizient, <strong>k</strong> = Federkonstante
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('underdamped')">Schwach gedämpft</button>
+            <button class="example-btn" onclick="loadExample('critical')">Kritisch gedämpft</button>
+            <button class="example-btn" onclick="loadExample('overdamped')">Stark gedämpft</button>
+            <button class="example-btn" onclick="loadExample('undamped')">Ungedämpft</button>
+        </div>
+
+        <div class="equation" id="equation">y'' + 2y' + y = 0</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Masse (m): <span id="mValue">1.0</span> kg</label>
+                <input type="range" id="m" min="0.5" max="5" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>Dämpfung (c): <span id="cValue">2.0</span> kg/s</label>
+                <input type="range" id="c" min="0" max="10" step="0.1" value="2">
+            </div>
+
+            <div class="control-group">
+                <label>Federkonstante (k): <span id="kValue">10.0</span> N/m</label>
+                <input type="range" id="k" min="1" max="20" step="0.5" value="10">
+            </div>
+
+            <div class="control-group">
+                <label>Anfangsauslenkung y(0): <span id="y0Value">1.0</span> m</label>
+                <input type="range" id="y0" min="-2" max="2" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>Anfangsgeschw. y'(0): <span id="v0Value">0.0</span> m/s</label>
+                <input type="range" id="v0" min="-5" max="5" step="0.1" value="0">
+            </div>
+        </div>
+
+        <div id="typeLabel" class="type-label underdamped">Schwach gedämpft (Unterkritisch)</div>
+
+        <div class="animation-control">
+            <button class="anim-btn" onclick="toggleAnimation()" id="animBtn">Animation starten</button>
+            <button class="anim-btn" onclick="resetAnimation()">Zurücksetzen</button>
+            <span style="margin-left: 15px; font-weight: bold;">Zeit: <span id="currentTime">0.00</span> s</span>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <div class="canvas-title">Position über Zeit: y(t)</div>
+                <canvas id="canvas" width="700" height="400"></canvas>
+            </div>
+            <div class="canvas-wrapper">
+                <div class="canvas-title">Phasenraum: y vs y'</div>
+                <canvas id="phaseCanvas" width="450" height="400"></canvas>
+                <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">Zeigt Position vs Geschwindigkeit</div>
+            </div>
+        </div>
+
+        <div class="interpretation" id="interpretation">
+            <h3>Physikalische Interpretation</h3>
+            <p>Passe die Parameter an, um verschiedene Dämpfungstypen zu sehen.</p>
+        </div>
+
+        <div class="info">
+            <p><strong>ω₀ (Eigenfrequenz):</strong> <span id="omega0">0</span> rad/s</p>
+            <p><strong>ζ (Dämpfungsgrad):</strong> <span id="zeta">0</span></p>
+            <p><strong>Eigenwerte λ₁, λ₂:</strong> <span id="eigenvalues">0</span></p>
+            <p><strong>Typ:</strong> <span id="typeInfo">0</span></p>
+        </div>
+
+        <div class="physical-meaning">
+            <h4>Physikalische Bedeutung der Parameter</h4>
+            <p><strong>Eigenfrequenz ω₀ = √(k/m):</strong> Die natürliche Schwingungsfrequenz ohne Dämpfung</p>
+            <p><strong>Dämpfungsgrad ζ = c/(2√(km)):</strong> Bestimmt den Dämpfungstyp:</p>
+            <ul>
+                <li><strong>ζ < 1:</strong> Unterkritisch (Schwingung mit Abklingen)</li>
+                <li><strong>ζ = 1:</strong> Kritisch (Schnellste Rückkehr ohne Überschwingen)</li>
+                <li><strong>ζ > 1:</strong> Überkritisch (Langsames Zurückkriechen)</li>
+            </ul>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tipps zum Verständnis</h3>
+            <ul>
+                <li><strong>Masse (m):</strong> Trägheit des Systems. Größere Masse → langsamere Bewegung</li>
+                <li><strong>Federkonstante (k):</strong> Rückstellkraft. Größere k → "härtere" Feder → schnellere Oszillation</li>
+                <li><strong>Dämpfung (c):</strong> Energieverlust. Größere c → schnelleres Abklingen</li>
+                <li><strong>Kritische Dämpfung:</strong> Der "Goldilocks"-Fall - gerade genug Dämpfung für schnellste Rückkehr ohne Überschwingen</li>
+                <li><strong>Anwendungen:</strong> Stoßdämpfer im Auto (kritisch gedämpft), Türschließer, Messinstrumente, Schwingungsdämpfer</li>
+            </ul>
+        </div>
+
+        <div class="tips-section" style="background: #fce4ec;">
+            <h3>Reale Anwendungen</h3>
+            <ul>
+                <li><strong>Auto-Stoßdämpfer:</strong> Kritisch gedämpft für Komfort ohne Nachschwingen</li>
+                <li><strong>Gebäudedämpfer:</strong> Reduzieren Schwingungen bei Erdbeben oder Wind</li>
+                <li><strong>Messinstrumente:</strong> Kritisch gedämpft für schnelle, genaue Messwerte</li>
+                <li><strong>Türschließer:</strong> Überkritisch gedämpft für langsames, kontrolliertes Schließen</li>
+                <li><strong>Federpendel:</strong> Unterkritisch gedämpft (schwingt mehrmals)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const phaseCanvas = document.getElementById('phaseCanvas');
+        const phaseCtx = phaseCanvas.getContext('2d');
+
+        let isAnimating = false;
+        let animationTime = 0;
+        let currentSolution = null;
+
+        const sliders = {
+            m: document.getElementById('m'),
+            c: document.getElementById('c'),
+            k: document.getElementById('k'),
+            y0: document.getElementById('y0'),
+            v0: document.getElementById('v0')
+        };
+
+        const values = {
+            m: document.getElementById('mValue'),
+            c: document.getElementById('cValue'),
+            k: document.getElementById('kValue'),
+            y0: document.getElementById('y0Value'),
+            v0: document.getElementById('v0Value')
+        };
+
+        const tMax = 10;
+
+        function toCanvasX(t) {
+            const padding = 50;
+            return padding + (t / tMax) * (canvas.width - 2 * padding);
+        }
+
+        function toCanvasY(y) {
+            const padding = 40;
+            const yMax = 3;
+            return canvas.height / 2 - y * (canvas.height - 2 * padding) / (2 * yMax);
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse (Zeit)
+            ctx.beginPath();
+            ctx.moveTo(50, canvas.height / 2);
+            ctx.lineTo(canvas.width - 50, canvas.height / 2);
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(50, 40);
+            ctx.lineTo(50, canvas.height - 40);
+            ctx.stroke();
+
+            // Beschriftungen
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('t (Zeit)', canvas.width - 80, canvas.height / 2 + 25);
+            ctx.fillText('y(t)', 15, 50);
+            ctx.fillText('0', 45, canvas.height / 2 + 20);
+
+            // Zeitmarkierungen
+            for (let t = 0; t <= tMax; t += 2) {
+                const x = toCanvasX(t);
+                ctx.fillText(t.toString(), x - 5, canvas.height / 2 + 20);
+                ctx.beginPath();
+                ctx.moveTo(x, canvas.height / 2 - 5);
+                ctx.lineTo(x, canvas.height / 2 + 5);
+                ctx.stroke();
+            }
+        }
+
+        function solveDGL(m, c, k, y0, v0) {
+            const omega0 = Math.sqrt(k / m);
+            const zeta = c / (2 * Math.sqrt(k * m));
+
+            const discriminant = c * c - 4 * m * k;
+
+            let solution;
+            let type;
+            let envelope = null;
+
+            if (discriminant < 0) {
+                // Unterkritisch gedämpft (komplexe Eigenwerte)
+                const alpha = -c / (2 * m);
+                const beta = Math.sqrt(-discriminant) / (2 * m);
+
+                const A = y0;
+                const B = (v0 - alpha * y0) / beta;
+
+                solution = (t) => {
+                    return Math.exp(alpha * t) * (
+                        A * Math.cos(beta * t) + B * Math.sin(beta * t)
+                    );
+                };
+
+                // Envelope für unterkritisch
+                const amplitude = Math.sqrt(A * A + B * B);
+                envelope = (t) => amplitude * Math.exp(alpha * t);
+
+                type = 'Unterkritisch gedämpft (Schwingung mit abnehmender Amplitude)';
+
+            } else if (Math.abs(discriminant) < 0.01) {
+                // Kritisch gedämpft (doppelte reelle Eigenwerte)
+                const lambda = -c / (2 * m);
+
+                solution = (t) => {
+                    return (y0 + (v0 - lambda * y0) * t) * Math.exp(lambda * t);
+                };
+                type = 'Kritisch gedämpft (Schnellste Rückkehr ohne Überschwingen)';
+
+            } else {
+                // Überkritisch gedämpft (zwei verschiedene reelle Eigenwerte)
+                const lambda1 = (-c + Math.sqrt(discriminant)) / (2 * m);
+                const lambda2 = (-c - Math.sqrt(discriminant)) / (2 * m);
+
+                const C1 = (v0 - lambda2 * y0) / (lambda1 - lambda2);
+                const C2 = y0 - C1;
+
+                solution = (t) => {
+                    return C1 * Math.exp(lambda1 * t) + C2 * Math.exp(lambda2 * t);
+                };
+                type = 'Überkritisch gedämpft (Langsame Rückkehr ohne Überschwingen)';
+            }
+
+            const lambda1 = discriminant >= 0
+                ? (-c + Math.sqrt(discriminant)) / (2 * m)
+                : -c / (2 * m) + Math.sqrt(-discriminant) / (2 * m);
+            const lambda2 = discriminant >= 0
+                ? (-c - Math.sqrt(discriminant)) / (2 * m)
+                : -c / (2 * m) - Math.sqrt(-discriminant) / (2 * m);
+
+            return { solution, omega0, zeta, lambda1, lambda2, type, discriminant, envelope };
+        }
+
+        function drawSolution(solution, envelope) {
+            // Zeichne Envelope (Hüllkurve) für unterkritisch
+            if (envelope) {
+                ctx.strokeStyle = '#95a5a6';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+
+                // Obere Hüllkurve
+                ctx.beginPath();
+                for (let t = 0; t <= tMax; t += 0.01) {
+                    const y = envelope(t);
+                    ctx.lineTo(toCanvasX(t), toCanvasY(y));
+                }
+                ctx.stroke();
+
+                // Untere Hüllkurve
+                ctx.beginPath();
+                for (let t = 0; t <= tMax; t += 0.01) {
+                    const y = -envelope(t);
+                    ctx.lineTo(toCanvasX(t), toCanvasY(y));
+                }
+                ctx.stroke();
+
+                ctx.setLineDash([]);
+            }
+
+            // Hauptlösung
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            for (let t = 0; t <= tMax; t += 0.01) {
+                const y = solution(t);
+                const cx = toCanvasX(t);
+                const cy = toCanvasY(y);
+
+                if (t === 0) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function updateTypeLabel(discriminant) {
+            const label = document.getElementById('typeLabel');
+
+            if (discriminant < -0.01) {
+                label.className = 'type-label underdamped';
+                label.textContent = 'Schwach gedämpft (Unterkritisch) - Oszillierend';
+            } else if (Math.abs(discriminant) <= 0.01) {
+                label.className = 'type-label critical';
+                label.textContent = 'Kritisch gedämpft - Optimale Dämpfung';
+            } else {
+                label.className = 'type-label overdamped';
+                label.textContent = 'Stark gedämpft (Überkritisch) - Kriechend';
+            }
+        }
+
+        function updateInterpretation(m, c, k, zeta, discriminant) {
+            const interp = document.getElementById('interpretation');
+
+            let html = '<h3>Physikalische Interpretation</h3>';
+
+            if (discriminant < -0.01) {
+                html += `<p><strong>Unterkritische Dämpfung (ζ = ${zeta.toFixed(3)} < 1):</strong> `;
+                html += `Das System schwingt mehrmals hin und her, wobei die Amplitude exponentiell abnimmt. `;
+                html += `Die gestrichelten Linien zeigen die Hüllkurve (Envelope), die das Abklingen beschreibt.</p>`;
+                html += `<p><strong>Beispiel:</strong> Eine Schaukel, die langsam zum Stillstand kommt, oder eine Gitarrensaite.</p>`;
+            } else if (Math.abs(discriminant) <= 0.01) {
+                html += `<p><strong>Kritische Dämpfung (ζ ≈ 1):</strong> `;
+                html += `Die perfekte Balance! Das System kehrt so schnell wie möglich zur Ruhelage zurück, ohne zu überschwingen. `;
+                html += `Dies ist oft der gewünschte Fall in technischen Anwendungen.</p>`;
+                html += `<p><strong>Beispiel:</strong> Auto-Stoßdämpfer sind kritisch gedämpft für optimalen Fahrkomfort.</p>`;
+            } else {
+                html += `<p><strong>Überkritische Dämpfung (ζ = ${zeta.toFixed(3)} > 1):</strong> `;
+                html += `Die Dämpfung ist so stark, dass das System nicht schwingt. `;
+                html += `Es kriecht langsam zur Ruhelage zurück - keine Oszillation.</p>`;
+                html += `<p><strong>Beispiel:</strong> Türschließer oder stark viskose Systeme (wie in Öl).</p>`;
+            }
+
+            // Physikalische Bedeutung der aktuellen Werte
+            html += `<p><strong>Aktuelle Konfiguration:</strong> `;
+            html += `Eine Masse von ${m.toFixed(1)} kg hängt an einer Feder (k = ${k.toFixed(1)} N/m) `;
+            html += `mit Dämpfung c = ${c.toFixed(1)} kg/s.</p>`;
+
+            interp.innerHTML = html;
+        }
+
+        function draw() {
+            const m = parseFloat(sliders.m.value);
+            const c = parseFloat(sliders.c.value);
+            const k = parseFloat(sliders.k.value);
+            const y0 = parseFloat(sliders.y0.value);
+            const v0 = parseFloat(sliders.v0.value);
+
+            values.m.textContent = m.toFixed(1);
+            values.c.textContent = c.toFixed(1);
+            values.k.textContent = k.toFixed(1);
+            values.y0.textContent = y0.toFixed(1);
+            values.v0.textContent = v0.toFixed(1);
+
+            const result = solveDGL(m, c, k, y0, v0);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes();
+            drawSolution(result.solution, result.envelope);
+
+            // Update equation
+            document.getElementById('equation').textContent =
+                `${m.toFixed(1)}y'' + ${c.toFixed(1)}y' + ${k.toFixed(1)}y = 0`;
+
+            // Update info
+            document.getElementById('omega0').textContent = result.omega0.toFixed(3);
+            document.getElementById('zeta').textContent = result.zeta.toFixed(3);
+
+            if (result.discriminant < 0) {
+                const alpha = -c / (2 * m);
+                const beta = Math.sqrt(-result.discriminant) / (2 * m);
+                document.getElementById('eigenvalues').textContent =
+                    `λ₁,₂ = ${alpha.toFixed(3)} ± ${beta.toFixed(3)}i (komplex)`;
+            } else {
+                document.getElementById('eigenvalues').textContent =
+                    `λ₁ = ${result.lambda1.toFixed(3)}, λ₂ = ${result.lambda2.toFixed(3)} (reell)`;
+            }
+
+            document.getElementById('typeInfo').textContent = result.type;
+
+            updateTypeLabel(result.discriminant);
+            updateInterpretation(m, c, k, result.zeta, result.discriminant);
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'underdamped':
+                    sliders.m.value = 1;
+                    sliders.c.value = 1;
+                    sliders.k.value = 10;
+                    sliders.y0.value = 1;
+                    sliders.v0.value = 0;
+                    break;
+                case 'critical':
+                    sliders.m.value = 1;
+                    sliders.c.value = 6.3; // 2*sqrt(km) ≈ 6.3 for m=1, k=10
+                    sliders.k.value = 10;
+                    sliders.y0.value = 1;
+                    sliders.v0.value = 0;
+                    break;
+                case 'overdamped':
+                    sliders.m.value = 1;
+                    sliders.c.value = 8;
+                    sliders.k.value = 10;
+                    sliders.y0.value = 1;
+                    sliders.v0.value = 0;
+                    break;
+                case 'undamped':
+                    sliders.m.value = 1;
+                    sliders.c.value = 0;
+                    sliders.k.value = 10;
+                    sliders.y0.value = 1;
+                    sliders.v0.value = 0;
+                    break;
+            }
+            draw();
+        }
+
+        Object.values(sliders).forEach(slider => {
+            slider.addEventListener('input', draw);
+        });
+
+        draw();
+    </script>
+</body>
+</html>

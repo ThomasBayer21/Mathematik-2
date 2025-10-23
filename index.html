@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisierungen - Mathematik 2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 3rem 0 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: white;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        main {
+            padding: 3rem 0 2rem;
+        }
+
+        .categories {
+            display: grid;
+            gap: 30px;
+        }
+
+        .category {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .visualizations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .viz-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 2px solid #e2e8f0;
+        }
+
+        .viz-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            border-color: #2563eb;
+        }
+
+        .viz-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+        }
+
+        .viz-description {
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .viz-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mathematik 2</h1>
+            <p class="subtitle">Interaktive Visualisierungen</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="categories">
+            <!-- Integralrechnung -->
+            <div class="category">
+                <h2 class="category-title">Integralrechnung</h2>
+                <div class="visualizations">
+                    <a href="1_Riemann_Summen.html" class="viz-card">
+                        <div class="viz-title">Riemann-Summen</div>
+                        <div class="viz-description">
+                            Approximation der Fläche unter einer Kurve durch Rechtecke und Trapeze.
+                        </div>
+                    </a>
+
+                    <a href="4_Substitution_Visualisierung.html" class="viz-card">
+                        <div class="viz-title">Substitutionsmethode</div>
+                        <div class="viz-description">
+                            Integrationstechnik durch Variablenwechsel.
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Differentialgleichungen -->
+            <div class="category">
+                <h2 class="category-title">Differentialgleichungen</h2>
+                <div class="visualizations">
+                    <a href="2_DGL_Richtungsfeld.html" class="viz-card">
+                        <div class="viz-title">Richtungsfeld</div>
+                        <div class="viz-description">
+                            Interaktive Visualisierung für DGL 1. Ordnung.
+                        </div>
+                    </a>
+
+                    <a href="5_Schwingungen_2_Ordnung.html" class="viz-card">
+                        <div class="viz-title">Gedämpfte Schwingungen</div>
+                        <div class="viz-description">
+                            DGL 2. Ordnung mit verschiedenen Dämpfungstypen.
+                        </div>
+                    </a>
+
+                    <a href="6_Phasenportrait_Systeme.html" class="viz-card">
+                        <div class="viz-title">Phasenportrait</div>
+                        <div class="viz-description">
+                            Visualisierung von 2×2 DGL-Systemen.
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Numerische Methoden -->
+            <div class="category">
+                <h2 class="category-title">Numerische Methoden</h2>
+                <div class="visualizations">
+                    <a href="3_Numerische_Methoden_Vergleich.html" class="viz-card">
+                        <div class="viz-title">Euler vs Runge-Kutta</div>
+                        <div class="viz-description">
+                            Vergleich numerischer Verfahren für DGL.
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
