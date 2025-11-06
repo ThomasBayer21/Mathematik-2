@@ -188,18 +188,18 @@
         <h1>Geometrische Reihen</h1>
 
         <div class="description">
-            <p><strong>Geometrische Reihe:</strong> ∑<sub>n=0</sub><sup>∞</sup> a·r<sup>n</sup> = a/(1-r) für |r| < 1</p>
-            <p><strong>Konvergenz:</strong> Die Reihe konvergiert genau dann, wenn |r| < 1</p>
-            <p>a = Anfangsglied, r = Quotient (Verhältnis aufeinanderfolgender Glieder)</p>
+            <p><strong>Geometrische Reihe:</strong> ∑<sub>n=0</sub><sup>∞</sup> a·q<sup>n</sup> = a/(1-q) für |q| < 1</p>
+            <p><strong>Konvergenz:</strong> Die Reihe konvergiert genau dann, wenn |q| < 1</p>
+            <p>a = Anfangsglied, q = Quotient (Verhältnis aufeinanderfolgender Glieder)</p>
         </div>
 
         <div class="example-buttons">
-            <button class="example-btn" onclick="loadExample('converge1')">r = 0.5</button>
-            <button class="example-btn" onclick="loadExample('converge2')">r = -0.5</button>
-            <button class="example-btn" onclick="loadExample('converge3')">r = 0.8</button>
-            <button class="example-btn" onclick="loadExample('diverge1')">r = 1.1</button>
-            <button class="example-btn" onclick="loadExample('diverge2')">r = -1.2</button>
-            <button class="example-btn" onclick="loadExample('zeno')">Zenon (r=0.5)</button>
+            <button class="example-btn" onclick="loadExample('converge1')">q = 0.5</button>
+            <button class="example-btn" onclick="loadExample('converge2')">q = -0.5</button>
+            <button class="example-btn" onclick="loadExample('converge3')">q = 0.8</button>
+            <button class="example-btn" onclick="loadExample('diverge1')">q = 1.1</button>
+            <button class="example-btn" onclick="loadExample('diverge2')">q = -1.2</button>
+            <button class="example-btn" onclick="loadExample('zeno')">Zenon (q=0.5)</button>
         </div>
 
         <div class="controls">
@@ -209,8 +209,8 @@
             </div>
 
             <div class="control-group">
-                <label>Quotient r: <span id="rValue">0.5</span></label>
-                <input type="range" id="r" min="-1.5" max="1.5" step="0.05" value="0.5">
+                <label>Quotient q: <span id="qValue">0.5</span></label>
+                <input type="range" id="q" min="-1.5" max="1.5" step="0.05" value="0.5">
             </div>
 
             <div class="control-group">
@@ -252,7 +252,7 @@
             <p><strong>Partialsumme S<sub>n</sub>:</strong> <span id="partialSum">0</span></p>
             <p><strong>Grenzwert:</strong> <span id="limit">-</span></p>
             <p><strong>Status:</strong> <span id="convergenceStatus"></span></p>
-            <p><strong>|r| =</strong> <span id="absR">0</span></p>
+            <p><strong>|q| =</strong> <span id="absQ">0</span></p>
         </div>
 
         <div class="terms-display">
@@ -277,32 +277,32 @@
         const ctx = canvas.getContext('2d');
 
         const aSlider = document.getElementById('a');
-        const rSlider = document.getElementById('r');
+        const qSlider = document.getElementById('q');
         const nSlider = document.getElementById('n');
         const aValue = document.getElementById('aValue');
-        const rValue = document.getElementById('rValue');
+        const qValue = document.getElementById('qValue');
         const nValue = document.getElementById('nValue');
 
         let isAnimating = false;
         let currentAnimN = 0;
         let animationId = null;
 
-        function geometricTerm(a, r, n) {
-            return a * Math.pow(r, n);
+        function geometricTerm(a, q, n) {
+            return a * Math.pow(q, n);
         }
 
-        function partialSum(a, r, n) {
-            if (Math.abs(r - 1) < 0.0001) {
+        function partialSum(a, q, n) {
+            if (Math.abs(q - 1) < 0.0001) {
                 return a * (n + 1);
             }
-            return a * (1 - Math.pow(r, n + 1)) / (1 - r);
+            return a * (1 - Math.pow(q, n + 1)) / (1 - q);
         }
 
-        function seriesLimit(a, r) {
-            if (Math.abs(r) >= 1) {
+        function seriesLimit(a, q) {
+            if (Math.abs(q) >= 1) {
                 return null;
             }
-            return a / (1 - r);
+            return a / (1 - q);
         }
 
         function toCanvasX(x, xMax) {
@@ -340,7 +340,7 @@
             ctx.fillText('Wert', toCanvasX(0, xMax) + 10, toCanvasY(yMax, yMin, yMax) - 10);
         }
 
-        function drawTerms(a, r, n, yMin, yMax) {
+        function drawTerms(a, q, n, yMin, yMax) {
             const maxN = isAnimating ? currentAnimN : n;
 
             // Zeichne Terme als Balken
@@ -349,7 +349,7 @@
             ctx.lineWidth = 2;
 
             for (let i = 0; i <= maxN; i++) {
-                const term = geometricTerm(a, r, i);
+                const term = geometricTerm(a, q, i);
                 if (Math.abs(term) > 1000) break;
 
                 const x = toCanvasX(i, n);
@@ -363,7 +363,7 @@
             }
         }
 
-        function drawPartialSums(a, r, n, yMin, yMax) {
+        function drawPartialSums(a, q, n, yMin, yMax) {
             const maxN = isAnimating ? currentAnimN : n;
 
             ctx.strokeStyle = '#2563eb';
@@ -372,7 +372,7 @@
 
             let started = false;
             for (let i = 0; i <= maxN; i++) {
-                const sum = partialSum(a, r, i);
+                const sum = partialSum(a, q, i);
                 if (Math.abs(sum) > 1000) break;
 
                 const x = toCanvasX(i, n);
@@ -396,8 +396,8 @@
             ctx.stroke();
         }
 
-        function drawLimit(a, r, n, yMin, yMax) {
-            const limit = seriesLimit(a, r);
+        function drawLimit(a, q, n, yMin, yMax) {
+            const limit = seriesLimit(a, q);
             if (limit === null || Math.abs(limit) > 1000) return;
 
             ctx.strokeStyle = '#27ae60';
@@ -415,45 +415,45 @@
             ctx.fillText(`Grenzwert: ${limit.toFixed(3)}`, toCanvasX(n, n) - 120, toCanvasY(limit, yMin, yMax) - 10);
         }
 
-        function displayTerms(a, r, n) {
+        function displayTerms(a, q, n) {
             const termsDiv = document.getElementById('termsDisplay');
             let html = '';
 
             const maxDisplay = Math.min(n, 15);
             for (let i = 0; i <= maxDisplay; i++) {
-                const term = geometricTerm(a, r, i);
-                const sum = partialSum(a, r, i);
-                html += `<div class="term">n=${i}: a·r^${i} = ${term.toFixed(4)}, S_${i} = ${sum.toFixed(4)}</div>`;
+                const term = geometricTerm(a, q, i);
+                const sum = partialSum(a, q, i);
+                html += `<div class="term">n=${i}: a·q^${i} = ${term.toFixed(4)}, S_${i} = ${sum.toFixed(4)}</div>`;
             }
 
             if (n > 15) {
                 html += '<div class="term">... (weitere Terme)</div>';
-                const lastTerm = geometricTerm(a, r, n);
-                const lastSum = partialSum(a, r, n);
-                html += `<div class="term">n=${n}: a·r^${n} = ${lastTerm.toFixed(4)}, S_${n} = ${lastSum.toFixed(4)}</div>`;
+                const lastTerm = geometricTerm(a, q, n);
+                const lastSum = partialSum(a, q, n);
+                html += `<div class="term">n=${n}: a·q^${n} = ${lastTerm.toFixed(4)}, S_${n} = ${lastSum.toFixed(4)}</div>`;
             }
 
             termsDiv.innerHTML = html;
         }
 
-        function updateInterpretation(a, r, n) {
+        function updateInterpretation(a, q, n) {
             const interp = document.getElementById('interpretation');
-            const absR = Math.abs(r);
+            const absQ = Math.abs(q);
 
-            let text = `<strong>Geometrische Reihe</strong> mit a = ${a.toFixed(2)} und r = ${r.toFixed(2)}.<br><br>`;
+            let text = `<strong>Geometrische Reihe</strong> mit a = ${a.toFixed(2)} und q = ${q.toFixed(2)}.<br><br>`;
 
-            if (absR < 1) {
-                text += `Da |r| = ${absR.toFixed(3)} < 1 ist, <strong>konvergiert</strong> die Reihe gegen ${seriesLimit(a, r).toFixed(3)}.<br>`;
+            if (absQ < 1) {
+                text += `Da |q| = ${absQ.toFixed(3)} < 1 ist, <strong>konvergiert</strong> die Reihe gegen ${seriesLimit(a, q).toFixed(3)}.<br>`;
                 text += `Je mehr Terme addiert werden, desto näher kommt die Partialsumme diesem Grenzwert.`;
-            } else if (absR > 1) {
-                text += `Da |r| = ${absR.toFixed(3)} > 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
+            } else if (absQ > 1) {
+                text += `Da |q| = ${absQ.toFixed(3)} > 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
                 text += `Die Terme werden immer größer (betragsmäßig), die Reihe hat keinen Grenzwert.`;
             } else {
-                text += `Da |r| = 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
-                if (r === 1) {
-                    text += `Bei r = 1 ist S_n = a·(n+1), die Summe wächst linear.`;
+                text += `Da |q| = 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
+                if (q === 1) {
+                    text += `Bei q = 1 ist S_n = a·(n+1), die Summe wächst linear.`;
                 } else {
-                    text += `Bei r = -1 oszilliert die Summe zwischen zwei Werten.`;
+                    text += `Bei q = -1 oszilliert die Summe zwischen zwei Werten.`;
                 }
             }
 
@@ -462,20 +462,20 @@
 
         function draw() {
             const a = parseFloat(aSlider.value);
-            const r = parseFloat(rSlider.value);
+            const q = parseFloat(qSlider.value);
             const n = parseInt(nSlider.value);
 
             aValue.textContent = a.toFixed(1);
-            rValue.textContent = r.toFixed(2);
+            qValue.textContent = q.toFixed(2);
             nValue.textContent = n;
 
             // Dynamische y-Achse
-            let yMax = Math.max(Math.abs(a), Math.abs(seriesLimit(a, r) || 0));
+            let yMax = Math.max(Math.abs(a), Math.abs(seriesLimit(a, q) || 0));
             let yMin = -yMax;
 
             for (let i = 0; i <= n; i++) {
-                const term = geometricTerm(a, r, i);
-                const sum = partialSum(a, r, i);
+                const term = geometricTerm(a, q, i);
+                const sum = partialSum(a, q, i);
                 yMax = Math.max(yMax, Math.abs(term), Math.abs(sum));
             }
             yMax = Math.min(yMax * 1.2, 100);
@@ -483,36 +483,36 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawAxes(n, yMin, yMax);
-            drawTerms(a, r, n, yMin, yMax);
-            drawPartialSums(a, r, n, yMin, yMax);
-            drawLimit(a, r, n, yMin, yMax);
+            drawTerms(a, q, n, yMin, yMax);
+            drawPartialSums(a, q, n, yMin, yMax);
+            drawLimit(a, q, n, yMin, yMax);
 
             // Update Info
             document.getElementById('nTerms').textContent = n + 1;
-            document.getElementById('partialSum').textContent = partialSum(a, r, n).toFixed(4);
+            document.getElementById('partialSum').textContent = partialSum(a, q, n).toFixed(4);
 
-            const limit = seriesLimit(a, r);
+            const limit = seriesLimit(a, q);
             document.getElementById('limit').textContent = limit !== null ? limit.toFixed(4) : 'nicht existent (divergent)';
 
-            const absR = Math.abs(r);
-            document.getElementById('absR').textContent = absR.toFixed(3);
+            const absQ = Math.abs(q);
+            document.getElementById('absQ').textContent = absQ.toFixed(3);
 
-            const isConvergent = absR < 1;
+            const isConvergent = absQ < 1;
             const statusHTML = isConvergent
                 ? '<span class="convergence-indicator convergent">Konvergent</span>'
                 : '<span class="convergence-indicator divergent">Divergent</span>';
             document.getElementById('convergenceStatus').innerHTML = statusHTML;
 
             // Formeln
-            document.getElementById('seriesFormula').textContent = `∑(n=0 bis ∞) ${a.toFixed(2)} · (${r.toFixed(2)})^n`;
+            document.getElementById('seriesFormula').textContent = `∑(n=0 bis ∞) ${a.toFixed(2)} · (${q.toFixed(2)})^n`;
             if (isConvergent) {
-                document.getElementById('sumFormula').textContent = `= ${a.toFixed(2)} / (1 - ${r.toFixed(2)}) = ${limit.toFixed(4)}`;
+                document.getElementById('sumFormula').textContent = `= ${a.toFixed(2)} / (1 - ${q.toFixed(2)}) = ${limit.toFixed(4)}`;
             } else {
                 document.getElementById('sumFormula').textContent = `= divergent (kein Grenzwert)`;
             }
 
-            displayTerms(a, r, n);
-            updateInterpretation(a, r, n);
+            displayTerms(a, q, n);
+            updateInterpretation(a, q, n);
         }
 
         function toggleAnimation() {
@@ -552,32 +552,32 @@
             switch(type) {
                 case 'converge1':
                     aSlider.value = 1;
-                    rSlider.value = 0.5;
+                    qSlider.value = 0.5;
                     nSlider.value = 10;
                     break;
                 case 'converge2':
                     aSlider.value = 1;
-                    rSlider.value = -0.5;
+                    qSlider.value = -0.5;
                     nSlider.value = 15;
                     break;
                 case 'converge3':
                     aSlider.value = 1;
-                    rSlider.value = 0.8;
+                    qSlider.value = 0.8;
                     nSlider.value = 20;
                     break;
                 case 'diverge1':
                     aSlider.value = 1;
-                    rSlider.value = 1.1;
+                    qSlider.value = 1.1;
                     nSlider.value = 10;
                     break;
                 case 'diverge2':
                     aSlider.value = 1;
-                    rSlider.value = -1.2;
+                    qSlider.value = -1.2;
                     nSlider.value = 10;
                     break;
                 case 'zeno':
                     aSlider.value = 1;
-                    rSlider.value = 0.5;
+                    qSlider.value = 0.5;
                     nSlider.value = 10;
                     break;
             }
@@ -585,7 +585,7 @@
         }
 
         aSlider.addEventListener('input', draw);
-        rSlider.addEventListener('input', draw);
+        qSlider.addEventListener('input', draw);
         nSlider.addEventListener('input', draw);
 
         draw();
