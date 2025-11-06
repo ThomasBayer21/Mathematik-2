@@ -7,20 +7,23 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #dae8d4 0%, #c4d8bc 100%);
             padding: 20px;
-            background-color: #f5f5f5;
+            min-height: 100vh;
         }
         h1 {
-            color: #2c3e50;
             text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
         }
         .container {
+            max-width: 1000px;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         .controls {
             display: grid;
@@ -50,12 +53,14 @@
             margin: 20px auto;
             background: white;
             cursor: crosshair;
+            max-width: 100%;
+            height: auto;
         }
         .description {
-            background: #f8fafc;
-            padding: 15px;
-            border-left: 3px solid #e2e8f0;
-            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
         }
         .example-buttons {
             display: grid;
@@ -197,6 +202,10 @@
                 Klicke in das Feld, um Orthogonaltrajektorien zu zeichnen.
             </p>
         </div>
+    
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
     </div>
 
     <script>
@@ -334,9 +343,9 @@
         function drawCurve(func, xMin, xMax, color, lineWidth = 2) {
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
-            ctx.beginPath();
 
             let started = false;
+            ctx.beginPath();
             for (let x = xMin; x <= xMax; x += (xMax - xMin) / 300) {
                 const y = func(x);
                 if (!isNaN(y) && isFinite(y) && Math.abs(y) < range) {
@@ -349,11 +358,16 @@
                     } else {
                         ctx.lineTo(cx, cy);
                     }
-                } else {
+                } else if (started) {
+                    // Stroke current segment before breaking
+                    ctx.stroke();
+                    ctx.beginPath();
                     started = false;
                 }
             }
-            ctx.stroke();
+            if (started) {
+                ctx.stroke();
+            }
         }
 
         function drawOriginalFamily() {

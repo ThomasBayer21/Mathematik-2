@@ -7,20 +7,23 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #daf0e8 0%, #bcd8d4 100%);
             padding: 20px;
-            background-color: #f5f5f5;
+            min-height: 100vh;
         }
         h1 {
-            color: #2c3e50;
             text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
         }
         .container {
+            max-width: 1000px;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         .controls {
             display: grid;
@@ -52,10 +55,10 @@
             cursor: crosshair;
         }
         .description {
-            background: #f8fafc;
-            padding: 15px;
-            border-left: 3px solid #e2e8f0;
-            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
         }
         .example-buttons {
             display: grid;
@@ -77,10 +80,11 @@
             background: #1e40af;
         }
         .info {
-            background: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
             margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .info p {
             margin: 8px 0;
@@ -195,6 +199,10 @@
             <p id="interpretation">
                 Klicke in das Feld, um den Gradienten an verschiedenen Punkten zu sehen.
             </p>
+        </div>
+    
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
         </div>
     </div>
 
@@ -420,11 +428,11 @@
                     ctx.moveTo(cx + dx, cy - dy);
                     ctx.lineTo(
                         cx + dx - headlen * Math.cos(angle - Math.PI / 6),
-                        cy - dy + headlen * Math.sin(angle - Math.PI / 6)
+                        cy - dy - headlen * Math.sin(angle - Math.PI / 6)
                     );
                     ctx.lineTo(
                         cx + dx - headlen * Math.cos(angle + Math.PI / 6),
-                        cy - dy + headlen * Math.sin(angle + Math.PI / 6)
+                        cy - dy - headlen * Math.sin(angle + Math.PI / 6)
                     );
                     ctx.closePath();
                     ctx.fillStyle = 'rgba(231, 76, 60, 0.6)';
@@ -468,11 +476,11 @@
             ctx.moveTo(toCanvasX(x) + dx, toCanvasY(y) - dy);
             ctx.lineTo(
                 toCanvasX(x) + dx - headlen * Math.cos(angle - Math.PI / 6),
-                toCanvasY(y) - dy + headlen * Math.sin(angle - Math.PI / 6)
+                toCanvasY(y) - dy - headlen * Math.sin(angle - Math.PI / 6)
             );
             ctx.lineTo(
                 toCanvasX(x) + dx - headlen * Math.cos(angle + Math.PI / 6),
-                toCanvasY(y) - dy + headlen * Math.sin(angle + Math.PI / 6)
+                toCanvasY(y) - dy - headlen * Math.sin(angle + Math.PI / 6)
             );
             ctx.closePath();
             ctx.fillStyle = '#2563eb';

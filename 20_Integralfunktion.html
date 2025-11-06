@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integralfunktion</title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dae8f0 0%, #c4d8e8 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+                    margin-top: 8px;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .value-display {
+            font-size: 1.1em;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .description h3 {
+            margin-top: 15px;
+            color: #2563eb;
+        }
+        .description p {
+            margin: 8px 0;
+        }
+        .examples {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .example-btn, button {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .example-btn:hover, button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .interpretation {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #2563eb;
+            margin-top: 15px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .formula-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .formula-box h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+        .formula {
+            font-size: 1.2em;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Integralfunktion</h1>
+
+    <div class="container">
+        <div class="description">
+            <p><strong>Formel:</strong> F(x) = ∫<sub>a</sub><sup>x</sup> f(t) dt &nbsp; und &nbsp; F'(x) = f(x)</p>
+            <p>Die Ableitung der Integralfunktion ist die ursprüngliche Funktion (Hauptsatz Teil 1).</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="functionSelect">Funktion:</label>
+                <select id="functionSelect">
+                    <option value="quadratic">Parabel: x²</option>
+                    <option value="sine">Sinus: sin(x)</option>
+                    <option value="linear">Linear: 2x + 1</option>
+                    <option value="exponential">Exponential: eˣ</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="aSlider">Untere Grenze a: <span id="aValue">0.5</span></label>
+                <input type="range" id="aSlider" min="0" max="2.5" step="0.1" value="0.5">
+            </div>
+            <div class="control-group">
+                <label for="xSlider">Obere Grenze x: <span id="xValue">2.0</span></label>
+                <input type="range" id="xSlider" min="0.5" max="3" step="0.1" value="2.0">
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="showDerivative" checked> Zeige Tangente (F'(x) = f(x))</label>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="900" height="600"></canvas>
+
+        <div class="info">
+            <h3>Werte bei x = <span id="xDisplay"></span>:</h3>
+            <p>f(x) = <span id="fValue" class="value-display"></span></p>
+            <p>F(x) = <span id="FValue" class="value-display"></span></p>
+            <p id="derivativeValue"></p>
+        </div>
+
+        <div class="description">
+            <h3>Hauptsatz (Teil 1):</h3>
+            <p>Die Ableitung der Integralfunktion ist die ursprüngliche Funktion: <strong>F'(x) = f(x)</strong></p>
+            <p>Die orange Tangente an F(x) hat die Steigung f(x).</p>
+
+            <h3>Legende:</h3>
+            <p>● <span style="color: #3498db;">Blau:</span> Funktion f(t)<br>
+            ● <span style="color: #27ae60;">Grün:</span> Integralfunktion F(x)<br>
+            ● <span style="color: #9b59b6;">Lila:</span> Untere Grenze a<br>
+            ● <span style="color: #e74c3c;">Rot:</span> Obere Grenze x<br>
+            ● <span style="color: rgba(52, 152, 219, 0.5);">Hellblau:</span> Fläche = F(x)</p>
+        </div>
+    
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>
+
+    <script>
+        const FUNCTIONS = {
+            quadratic: {
+                f: x => x * x,
+                antiderivative: x => (x ** 3) / 3,
+                domain: [0, 3],
+                range: [-2, 10]
+            },
+            sine: {
+                f: x => Math.sin(x),
+                antiderivative: x => -Math.cos(x),
+                domain: [0, 2 * Math.PI],
+                range: [-2, 2]
+            },
+            linear: {
+                f: x => 2 * x + 1,
+                antiderivative: x => x * x + x,
+                domain: [0, 3],
+                range: [-1, 10]
+            },
+            exponential: {
+                f: x => Math.exp(x),
+                antiderivative: x => Math.exp(x),
+                domain: [0, 2],
+                range: [-1, 8]
+            }
+        };
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentFunc = 'quadratic';
+        let a = 0.5, x = 2.0;
+        let mouseX = null;
+        let showDerivative = true;
+
+        document.getElementById('functionSelect').addEventListener('change', e => {
+            currentFunc = e.target.value;
+            const func = FUNCTIONS[currentFunc];
+            a = func.domain[0] + 0.5;
+            x = func.domain[1] - 1;
+            updateSliders();
+            draw();
+            updateInfo();
+        });
+
+        document.getElementById('aSlider').addEventListener('input', e => {
+            a = parseFloat(e.target.value);
+            updateDisplay();
+            draw();
+            updateInfo();
+        });
+
+        document.getElementById('xSlider').addEventListener('input', e => {
+            x = parseFloat(e.target.value);
+            updateDisplay();
+            draw();
+            updateInfo();
+        });
+
+        document.getElementById('showDerivative').addEventListener('change', e => {
+            showDerivative = e.target.checked;
+            draw();
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseCanvasX = e.clientX - rect.left;
+            const func = FUNCTIONS[currentFunc];
+            const [xMin, xMax] = func.domain;
+            const padding = 60;
+            const xPos = xMin + ((mouseCanvasX - padding) / (canvas.width - 2 * padding)) * (xMax - xMin);
+
+            if (xPos >= a && xPos <= xMax) {
+                mouseX = xPos;
+                draw();
+                updateInfo();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = null;
+            draw();
+            updateInfo();
+        });
+
+        canvas.addEventListener('click', () => {
+            if (mouseX !== null) {
+                x = mouseX;
+                updateDisplay();
+                draw();
+                updateInfo();
+            }
+        });
+
+        function updateSliders() {
+            const func = FUNCTIONS[currentFunc];
+            document.getElementById('aSlider').min = func.domain[0];
+            document.getElementById('aSlider').max = func.domain[1];
+            document.getElementById('xSlider').min = func.domain[0];
+            document.getElementById('xSlider').max = func.domain[1];
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('aValue').textContent = a.toFixed(2);
+            document.getElementById('xValue').textContent = x.toFixed(2);
+        }
+
+        function updateInfo() {
+            const func = FUNCTIONS[currentFunc];
+            const currentX = mouseX !== null ? mouseX : x;
+            const F = xVal => func.antiderivative(xVal) - func.antiderivative(a);
+            const integralValue = F(currentX);
+            const functionValue = func.f(currentX);
+
+            document.getElementById('xDisplay').textContent = currentX.toFixed(3);
+            document.getElementById('fValue').textContent = functionValue.toFixed(3);
+            document.getElementById('FValue').textContent = integralValue.toFixed(3);
+
+            if (showDerivative) {
+                document.getElementById('derivativeValue').innerHTML =
+                    `F'(x) = <span class="value-display">${functionValue.toFixed(3)}</span>`;
+            } else {
+                document.getElementById('derivativeValue').innerHTML = '';
+            }
+        }
+
+        function draw() {
+            const func = FUNCTIONS[currentFunc];
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 60;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const [xMin, xMax] = func.domain;
+            const [yMin, yMax] = func.range;
+
+            const toX = x => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+            const toY = y => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding);
+
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(0));
+            ctx.lineTo(toX(xMax), toY(0));
+            ctx.moveTo(toX(0), toY(yMin));
+            ctx.lineTo(toX(0), toY(yMax));
+            ctx.stroke();
+
+            const F = xVal => func.antiderivative(xVal) - func.antiderivative(a);
+            const upperLimit = mouseX !== null ? mouseX : x;
+
+            // Draw filled area
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(toX(a), toY(0));
+            for (let t = a; t <= upperLimit; t += (xMax - xMin) / 500) {
+                ctx.lineTo(toX(t), toY(func.f(t)));
+            }
+            ctx.lineTo(toX(upperLimit), toY(func.f(upperLimit)));
+            ctx.lineTo(toX(upperLimit), toY(0));
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw f(t)
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let t = xMin; t <= xMax; t += (xMax - xMin) / 500) {
+                const y = func.f(t);
+                if (t === xMin) ctx.moveTo(toX(t), toY(y));
+                else ctx.lineTo(toX(t), toY(y));
+            }
+            ctx.stroke();
+
+            // Draw F(x)
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let t = a; t <= xMax; t += (xMax - xMin) / 500) {
+                const y = F(t);
+                if (t === a) ctx.moveTo(toX(t), toY(y));
+                else ctx.lineTo(toX(t), toY(y));
+            }
+            ctx.stroke();
+
+            // Draw tangent
+            if (showDerivative) {
+                const tangentX = mouseX !== null ? mouseX : x;
+                const tangentY = F(tangentX);
+                const slope = func.f(tangentX);
+
+                const dx = 0.5;
+                const x1 = tangentX - dx;
+                const x2 = tangentX + dx;
+                const y1 = tangentY - slope * dx;
+                const y2 = tangentY + slope * dx;
+
+                ctx.strokeStyle = '#e67e22';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(toX(x1), toY(y1));
+                ctx.lineTo(toX(x2), toY(y2));
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw bounds
+            ctx.strokeStyle = '#9b59b6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(toX(a), toY(yMin));
+            ctx.lineTo(toX(a), toY(yMax));
+            ctx.stroke();
+
+            ctx.strokeStyle = mouseX !== null ? '#f39c12' : '#e74c3c';
+            ctx.lineWidth = mouseX !== null ? 3 : 2;
+            ctx.beginPath();
+            ctx.moveTo(toX(upperLimit), toY(yMin));
+            ctx.lineTo(toX(upperLimit), toY(yMax));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw points
+            ctx.fillStyle = '#3498db';
+            ctx.beginPath();
+            ctx.arc(toX(upperLimit), toY(func.f(upperLimit)), 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#27ae60';
+            ctx.beginPath();
+            ctx.arc(toX(upperLimit), toY(F(upperLimit)), 6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('t', toX(xMax) + 10, toY(0) + 5);
+            ctx.fillText('y', toX(0) - 15, toY(yMax) - 10);
+
+            ctx.fillStyle = '#3498db';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('f(t)', toX(xMax) - 40, toY(func.f(xMax)) - 15);
+
+            ctx.fillStyle = '#27ae60';
+            ctx.fillText('F(x)', toX(xMax) - 40, toY(F(xMax)) + 20);
+        }
+
+        updateSliders();
+        updateInfo();
+        draw();
+    </script>
+</body>
+</html>

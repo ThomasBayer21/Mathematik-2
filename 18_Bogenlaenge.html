@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bogenlänge</title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dae8f0 0%, #c4d8e8 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+                    margin-top: 8px;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .value-display {
+            font-size: 1.1em;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .description h3 {
+            margin-top: 15px;
+            color: #2563eb;
+        }
+        .description p {
+            margin: 8px 0;
+        }
+        .examples {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .example-btn, button {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .example-btn:hover, button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .interpretation {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #2563eb;
+            margin-top: 15px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .formula-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .formula-box h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+        .formula {
+            font-size: 1.2em;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Bogenlänge</h1>
+
+    <div class="container">
+        <div class="description">
+            <p><strong>Formel:</strong> L = ∫ₐᵇ √(1 + [f'(x)]²) dx</p>
+            <p>Die Bogenlänge wird durch das Integral über das Linienelement ds = √(1 + [f'(x)]²) dx berechnet.</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="functionSelect">Funktion:</label>
+                <select id="functionSelect">
+                    <option value="parabola">Parabel: x²/4</option>
+                    <option value="sine">Sinus: sin(x)</option>
+                    <option value="circle">Kreisbogen: √(4-x²)</option>
+                    <option value="exponential">Exponential: e^(0.5x)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="aSlider">Untere Grenze a: <span id="aValue">0.5</span></label>
+                <input type="range" id="aSlider" min="0" max="2.5" step="0.1" value="0.5">
+            </div>
+            <div class="control-group">
+                <label for="bSlider">Obere Grenze b: <span id="bValue">2.5</span></label>
+                <input type="range" id="bSlider" min="0.5" max="3" step="0.1" value="2.5">
+            </div>
+            <div class="control-group">
+                <label for="nSlider">Anzahl Segmente n: <span id="nValue">10</span></label>
+                <input type="range" id="nSlider" min="2" max="50" step="1" value="10">
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="showSegments" checked> Zeige Approximations-Segmente</label>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="900" height="600"></canvas>
+
+        <div class="info">
+            <h3>Bogenlänge:</h3>
+            <p>Exakte Länge: <span id="exactLength" class="value-display"></span></p>
+            <p>Approximierte Länge (n=<span id="nDisplay"></span>): <span id="approxLength" class="value-display"></span></p>
+            <p>Fehler: <span id="error" class="value-display"></span></p>
+            <div id="mouseInfo"></div>
+        </div>
+
+        <div class="description">
+            <h3>Konzept:</h3>
+            <p>Die Bogenlänge wird durch das Integral über das Linienelement ds = √(1 + [f'(x)]²) dx berechnet.</p>
+            <p>Die roten Segmente approximieren die Kurve durch gerade Linien. Mit steigendem n konvergiert die Approximation gegen den exakten Wert.</p>
+
+            <h3>Legende:</h3>
+            <p>● <span style="color: #3498db;">Blau:</span> Kurve f(x)<br>
+            ● <span style="color: #e74c3c;">Rot (gestrichelt):</span> Lineare Approximation<br>
+            ● <span style="color: #f39c12;">Orange:</span> Integrationsgrenzen</p>
+        </div>
+    
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>
+
+    <script>
+        const FUNCTIONS = {
+            parabola: {
+                f: x => (x * x) / 4,
+                derivative: x => x / 2,
+                domain: [0, 4],
+                range: [0, 5],
+                exactArcLength: (a, b) => {
+                    const steps = 1000;
+                    const dx = (b - a) / steps;
+                    let sum = 0;
+                    for (let i = 0; i < steps; i++) {
+                        const x = a + (i + 0.5) * dx;
+                        const fprime = x / 2;
+                        sum += Math.sqrt(1 + fprime * fprime) * dx;
+                    }
+                    return sum;
+                }
+            },
+            sine: {
+                f: x => Math.sin(x),
+                derivative: x => Math.cos(x),
+                domain: [0, 2 * Math.PI],
+                range: [-1.5, 1.5],
+                exactArcLength: (a, b) => {
+                    const steps = 1000;
+                    const dx = (b - a) / steps;
+                    let sum = 0;
+                    for (let i = 0; i < steps; i++) {
+                        const x = a + (i + 0.5) * dx;
+                        const fprime = Math.cos(x);
+                        sum += Math.sqrt(1 + fprime * fprime) * dx;
+                    }
+                    return sum;
+                }
+            },
+            circle: {
+                f: x => Math.sqrt(4 - x * x),
+                derivative: x => -x / Math.sqrt(4 - x * x),
+                domain: [-2, 2],
+                range: [0, 2.5],
+                exactArcLength: (a, b) => {
+                    const radius = 2;
+                    const angleA = Math.asin(a / radius);
+                    const angleB = Math.asin(b / radius);
+                    return radius * (angleB - angleA);
+                }
+            },
+            exponential: {
+                f: x => Math.exp(0.5 * x),
+                derivative: x => 0.5 * Math.exp(0.5 * x),
+                domain: [0, 3],
+                range: [0, 5],
+                exactArcLength: (a, b) => {
+                    const steps = 1000;
+                    const dx = (b - a) / steps;
+                    let sum = 0;
+                    for (let i = 0; i < steps; i++) {
+                        const x = a + (i + 0.5) * dx;
+                        const fprime = 0.5 * Math.exp(0.5 * x);
+                        sum += Math.sqrt(1 + fprime * fprime) * dx;
+                    }
+                    return sum;
+                }
+            }
+        };
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentFunc = 'parabola';
+        let a = 0, b = 3, n = 10;
+        let mouseX = null;
+        let showSegments = true;
+
+        document.getElementById('functionSelect').addEventListener('change', e => {
+            currentFunc = e.target.value;
+            const func = FUNCTIONS[currentFunc];
+            document.getElementById('aSlider').min = func.domain[0];
+            document.getElementById('aSlider').max = func.domain[1];
+            document.getElementById('bSlider').min = func.domain[0];
+            document.getElementById('bSlider').max = func.domain[1];
+            a = func.domain[0];
+            b = func.domain[1] * 0.75;
+            updateDisplay();
+            draw();
+        });
+
+        document.getElementById('aSlider').addEventListener('input', e => { a = parseFloat(e.target.value); updateDisplay(); draw(); });
+        document.getElementById('bSlider').addEventListener('input', e => { b = parseFloat(e.target.value); updateDisplay(); draw(); });
+        document.getElementById('nSlider').addEventListener('input', e => { n = parseInt(e.target.value); updateDisplay(); draw(); });
+        document.getElementById('showSegments').addEventListener('change', e => { showSegments = e.target.checked; draw(); });
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseCanvasX = e.clientX - rect.left;
+            const func = FUNCTIONS[currentFunc];
+            const [xMin, xMax] = func.domain;
+            const padding = 60;
+            const x = xMin + ((mouseCanvasX - padding) / (canvas.width - 2 * padding)) * (xMax - xMin);
+
+            if (x >= a && x <= b) {
+                mouseX = x;
+                draw();
+                updateMouseInfo();
+            } else {
+                mouseX = null;
+                document.getElementById('mouseInfo').innerHTML = '';
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = null;
+            document.getElementById('mouseInfo').innerHTML = '';
+            draw();
+        });
+
+        function updateDisplay() {
+            document.getElementById('aValue').textContent = a.toFixed(2);
+            document.getElementById('bValue').textContent = b.toFixed(2);
+            document.getElementById('nValue').textContent = n;
+            document.getElementById('nDisplay').textContent = n;
+
+            const func = FUNCTIONS[currentFunc];
+            const exact = func.exactArcLength(a, b);
+            const approx = calculateApproximateLength();
+            const error = Math.abs(exact - approx);
+
+            document.getElementById('exactLength').textContent = exact.toFixed(4);
+            document.getElementById('approxLength').textContent = approx.toFixed(4);
+            document.getElementById('error').textContent = `${error.toFixed(4)} (${((error / exact) * 100).toFixed(2)}%)`;
+        }
+
+        function updateMouseInfo() {
+            if (mouseX === null) return;
+            const func = FUNCTIONS[currentFunc];
+            const arcLengthAtMouse = func.exactArcLength(a, mouseX);
+            const slopeAtMouse = func.derivative(mouseX);
+
+            document.getElementById('mouseInfo').innerHTML = `
+                <h4>Position x = ${mouseX.toFixed(3)}</h4>
+                <p>f(x) = ${func.f(mouseX).toFixed(3)}</p>
+                <p>f'(x) = ${slopeAtMouse.toFixed(3)}</p>
+                <p>Bogenlänge von ${a.toFixed(1)} bis ${mouseX.toFixed(2)}: ${arcLengthAtMouse.toFixed(4)}</p>
+                <p>√(1 + [f'(x)]²) = ${Math.sqrt(1 + slopeAtMouse ** 2).toFixed(3)}</p>
+            `;
+        }
+
+        function calculateApproximateLength() {
+            const func = FUNCTIONS[currentFunc];
+            const dx = (b - a) / n;
+            let sum = 0;
+
+            for (let i = 0; i < n; i++) {
+                const x1 = a + i * dx;
+                const x2 = a + (i + 1) * dx;
+                const y1 = func.f(x1);
+                const y2 = func.f(x2);
+                const segmentLength = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+                sum += segmentLength;
+            }
+
+            return sum;
+        }
+
+        function draw() {
+            const func = FUNCTIONS[currentFunc];
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 60;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const [xMin, xMax] = func.domain;
+            const [yMin, yMax] = func.range;
+
+            const toX = x => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+            const toY = y => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding);
+
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(0));
+            ctx.lineTo(toX(xMax), toY(0));
+            ctx.moveTo(toX(0), toY(yMin));
+            ctx.lineTo(toX(0), toY(yMax));
+            ctx.stroke();
+
+            // Draw approximating segments
+            if (showSegments) {
+                const dx = (b - a) / n;
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3, 3]);
+
+                for (let i = 0; i < n; i++) {
+                    const x1 = a + i * dx;
+                    const x2 = a + (i + 1) * dx;
+                    const y1 = func.f(x1);
+                    const y2 = func.f(x2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(toX(x1), toY(y1));
+                    ctx.lineTo(toX(x2), toY(y2));
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.beginPath();
+                    ctx.arc(toX(x1), toY(y1), 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                const xLast = a + n * dx;
+                const yLast = func.f(xLast);
+                ctx.fillStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(toX(xLast), toY(yLast), 4, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.setLineDash([]);
+            }
+
+            // Draw function curve
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let x = a; x <= b; x += (b - a) / 500) {
+                const y = func.f(x);
+                if (x === a) ctx.moveTo(toX(x), toY(y));
+                else ctx.lineTo(toX(x), toY(y));
+            }
+            ctx.stroke();
+
+            // Draw full function (grayed out outside [a, b])
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 500) {
+                const y = func.f(x);
+                if ((x < a || x > b) && !isNaN(y) && isFinite(y)) {
+                    if (!started) {
+                        ctx.moveTo(toX(x), toY(y));
+                        started = true;
+                    } else {
+                        ctx.lineTo(toX(x), toY(y));
+                    }
+                } else if (started) {
+                    ctx.stroke();
+                    ctx.beginPath();
+                    started = false;
+                }
+            }
+            if (started) ctx.stroke();
+
+            // Draw bounds
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(toX(a), toY(yMin));
+            ctx.lineTo(toX(a), toY(yMax));
+            ctx.moveTo(toX(b), toY(yMin));
+            ctx.lineTo(toX(b), toY(yMax));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw mouse position indicator
+            if (mouseX !== null) {
+                const y = func.f(mouseX);
+                const fprime = func.derivative(mouseX);
+
+                ctx.strokeStyle = '#9b59b6';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(toX(mouseX), toY(yMin));
+                ctx.lineTo(toX(mouseX), toY(yMax));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#9b59b6';
+                ctx.beginPath();
+                ctx.arc(toX(mouseX), toY(y), 6, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Tangent line
+                const dx = 0.3;
+                const tangentY1 = y - fprime * dx;
+                const tangentY2 = y + fprime * dx;
+
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(toX(mouseX - dx), toY(tangentY1));
+                ctx.lineTo(toX(mouseX + dx), toY(tangentY2));
+                ctx.stroke();
+            }
+
+            // Draw labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('x', toX(xMax) + 10, toY(0) + 5);
+            ctx.fillText('y', toX(0) - 15, toY(yMax) - 10);
+        }
+
+        updateDisplay();
+        draw();
+    </script>
+</body>
+</html>

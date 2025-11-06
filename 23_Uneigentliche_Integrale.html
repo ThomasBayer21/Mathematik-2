@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uneigentliche Integrale</title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dae8f0 0%, #c4d8e8 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+                    margin-top: 8px;
+        }
+        select, input {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info-box p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .value-display {
+            font-size: 1.1em;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        .description {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .description h3 {
+            margin-top: 15px;
+            color: #2563eb;
+        }
+        .description p {
+            margin: 8px 0;
+        }
+        .examples {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .example-btn, button {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .example-btn:hover, button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .interpretation {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #2563eb;
+            margin-top: 15px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .formula-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .formula-box h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+        .formula {
+            font-size: 1.2em;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .convergent {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .divergent {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Uneigentliche Integrale</h1>
+
+    <div class="container">
+        <div class="description">
+            <p><strong>Typ I (unbeschränkt):</strong> ∫ₐ^∞ f(x) dx = lim<sub>b→∞</sub> ∫ₐᵇ f(x) dx</p>
+            <p><strong>Typ II (Polstelle):</strong> ∫₀ᵇ f(x) dx = lim<sub>a→0⁺</sub> ∫ₐᵇ f(x) dx</p>
+        </div>
+
+        <div class="info-box">
+            <p><strong>Uneigentlich:</strong> Integrationsbereich ist unbeschränkt (∞) oder Funktion hat Polstelle</p>
+            <p><strong>Konvergent:</strong> Grenzwert existiert - Integral hat endlichen Wert</p>
+            <p><strong>Divergent:</strong> Grenzwert existiert nicht - Integral wächst unbegrenzt</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="functionSelect">Funktion:</label>
+                <select id="functionSelect">
+                    <option value="reciprocalSquared">1/x² (konvergent, ∞)</option>
+                    <option value="reciprocal">1/x (divergent, ∞)</option>
+                    <option value="exponential">e^(-x) (konvergent, ∞)</option>
+                    <option value="sqrtReciprocal">1/√x (konvergent, Pol bei 0)</option>
+                    <option value="reciprocalStrong">1/x bei 0 (divergent, Pol)</option>
+                </select>
+            </div>
+            <div class="control-group" id="upperLimitControl">
+                <label for="upperSlider">Obere Grenze b: <span id="upperValue">5.0</span></label>
+                <input type="range" id="upperSlider" min="1" max="10" step="0.5" value="5">
+            </div>
+            <div class="control-group" id="lowerLimitControl" style="display:none;">
+                <label for="lowerSlider">Untere Grenze a (→ 0⁺): <span id="lowerValue">0.10</span></label>
+                <input type="range" id="lowerSlider" min="0.01" max="0.9" step="0.01" value="0.1">
+            </div>
+        </div>
+
+        <canvas id="canvas" width="900" height="600"></canvas>
+
+        <div class="info" id="resultInfo">
+            <h3 id="integralFormula"></h3>
+            <div id="convergenceStatus"></div>
+            <div id="mouseInfo"></div>
+        </div>
+
+        <div class="description">
+            <h3>Konvergenzkriterium:</h3>
+            <div id="criterion"></div>
+
+            <h3>Legende:</h3>
+            <p>● <span style="color: #3498db;">Blau:</span> Funktion f(x)<br>
+            ● <span style="color: rgba(46, 204, 113, 0.5);">Grün/</span><span style="color: rgba(231, 76, 60, 0.5);">Rot:</span> Fläche (konvergent/divergent)<br>
+            ● <span style="color: #f39c12;">Orange:</span> Variable Grenze<br>
+            ● <span style="color: #e74c3c;">Rot gestrichelt:</span> Polstelle</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>
+
+    <script>
+        const FUNCTIONS = {
+            reciprocalSquared: {
+                name: '1/x²',
+                f: x => 1 / (x * x),
+                antiderivative: x => -1 / x,
+                integralType: 'infinite_upper',
+                limitValue: 1,
+                convergent: true,
+                domain: [0.5, 10],
+                range: [0, 5],
+                latex: '\\int_1^{\\infty} \\frac{1}{x^2} dx = 1'
+            },
+            reciprocal: {
+                name: '1/x',
+                f: x => 1 / x,
+                antiderivative: x => Math.log(x),
+                integralType: 'infinite_upper',
+                limitValue: null,
+                convergent: false,
+                domain: [0.5, 10],
+                range: [0, 5],
+                latex: '\\int_1^{\\infty} \\frac{1}{x} dx = \\infty'
+            },
+            exponential: {
+                name: 'e^(-x)',
+                f: x => Math.exp(-x),
+                antiderivative: x => -Math.exp(-x),
+                integralType: 'infinite_upper',
+                limitValue: 1,
+                convergent: true,
+                domain: [0, 6],
+                range: [0, 1.5],
+                latex: '\\int_0^{\\infty} e^{-x} dx = 1'
+            },
+            sqrtReciprocal: {
+                name: '1/√x',
+                f: x => 1 / Math.sqrt(x),
+                antiderivative: x => 2 * Math.sqrt(x),
+                integralType: 'pole_lower',
+                polePosition: 0,
+                limitValue: 2,
+                convergent: true,
+                domain: [0, 1.5],
+                range: [0, 8],
+                latex: '\\int_0^{1} \\frac{1}{\\sqrt{x}} dx = 2'
+            },
+            reciprocalStrong: {
+                name: '1/x bei 0',
+                f: x => 1 / x,
+                antiderivative: x => Math.log(x),
+                integralType: 'pole_lower',
+                polePosition: 0,
+                limitValue: null,
+                convergent: false,
+                domain: [0, 1.5],
+                range: [0, 10],
+                latex: '\\int_0^{1} \\frac{1}{x} dx = \\infty'
+            }
+        };
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentFunc = 'reciprocalSquared';
+        let upperLimit = 5, lowerLimit = 0.1;
+        let mouseX = null;
+
+        document.getElementById('functionSelect').addEventListener('change', e => {
+            currentFunc = e.target.value;
+            const func = FUNCTIONS[currentFunc];
+
+            if (func.integralType === 'infinite_upper') {
+                document.getElementById('upperLimitControl').style.display = 'flex';
+                document.getElementById('lowerLimitControl').style.display = 'none';
+            } else {
+                document.getElementById('upperLimitControl').style.display = 'none';
+                document.getElementById('lowerLimitControl').style.display = 'flex';
+            }
+
+            draw();
+            updateInfo();
+        });
+
+        document.getElementById('upperSlider').addEventListener('input', e => {
+            upperLimit = parseFloat(e.target.value);
+            document.getElementById('upperValue').textContent = upperLimit.toFixed(1);
+            draw();
+            updateInfo();
+        });
+
+        document.getElementById('lowerSlider').addEventListener('input', e => {
+            lowerLimit = parseFloat(e.target.value);
+            document.getElementById('lowerValue').textContent = lowerLimit.toFixed(2);
+            draw();
+            updateInfo();
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseCanvasX = e.clientX - rect.left;
+            const func = FUNCTIONS[currentFunc];
+            const [xMin, xMax] = func.domain;
+            const padding = 60;
+            const x = xMin + ((mouseCanvasX - padding) / (canvas.width - 2 * padding)) * (xMax - xMin);
+
+            const effectiveLower = func.integralType === 'pole_lower' ? lowerLimit : (func.polePosition || xMin);
+            const effectiveUpper = func.integralType === 'infinite_upper' ? upperLimit : xMax;
+
+            if (x >= effectiveLower && x <= effectiveUpper) {
+                mouseX = x;
+                draw();
+                updateMouseInfo();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = null;
+            document.getElementById('mouseInfo').innerHTML = '';
+            draw();
+        });
+
+        function updateInfo() {
+            const func = FUNCTIONS[currentFunc];
+
+            document.getElementById('integralFormula').textContent = func.latex;
+
+            const effectiveLower = func.integralType === 'pole_lower' ? lowerLimit : 1;
+            const effectiveUpper = func.integralType === 'infinite_upper' ? upperLimit : 1;
+
+            const integralValue = func.antiderivative(effectiveUpper) - func.antiderivative(effectiveLower);
+
+            let statusHTML = func.convergent ? '<div class="convergent">' : '<div class="divergent">';
+            statusHTML += `<p><strong>${func.convergent ? 'Konvergent' : 'Divergent'}</strong></p>`;
+
+            if (func.integralType === 'infinite_upper') {
+                statusHTML += `<p>∫₁^${upperLimit.toFixed(1)} f(x) dx = ${integralValue.toFixed(4)}</p>`;
+                if (func.convergent && func.limitValue !== null) {
+                    statusHTML += `<p>lim<sub>b→∞</sub> = ${func.limitValue.toFixed(4)}</p>`;
+                }
+            } else {
+                statusHTML += `<p>∫<sub>${lowerLimit.toFixed(3)}</sub>¹ f(x) dx = ${integralValue.toFixed(4)}</p>`;
+                if (func.convergent && func.limitValue !== null) {
+                    statusHTML += `<p>lim<sub>a→0⁺</sub> = ${func.limitValue.toFixed(4)}</p>`;
+                }
+            }
+            statusHTML += '</div>';
+            document.getElementById('convergenceStatus').innerHTML = statusHTML;
+
+            // Update criterion
+            let criterionHTML = '';
+            if (func.integralType === 'infinite_upper') {
+                criterionHTML = `
+                    <p>Für ∫₁^∞ 1/xᵖ dx gilt:<br>
+                    • <strong>p > 1:</strong> konvergent<br>
+                    • <strong>p ≤ 1:</strong> divergent</p>
+                `;
+            } else {
+                criterionHTML = `
+                    <p>Für ∫₀¹ 1/xᵖ dx gilt:<br>
+                    • <strong>p < 1:</strong> konvergent<br>
+                    • <strong>p ≥ 1:</strong> divergent</p>
+                `;
+            }
+            document.getElementById('criterion').innerHTML = criterionHTML;
+        }
+
+        function updateMouseInfo() {
+            if (mouseX === null) return;
+            const func = FUNCTIONS[currentFunc];
+            const effectiveLower = func.integralType === 'pole_lower' ? lowerLimit : 1;
+            const partialIntegral = func.antiderivative(mouseX) - func.antiderivative(effectiveLower);
+
+            document.getElementById('mouseInfo').innerHTML = `
+                <hr>
+                <h4>Position x = ${mouseX.toFixed(3)}</h4>
+                <p>f(x) = ${func.f(mouseX).toFixed(3)}</p>
+                <p>∫ von ${effectiveLower.toFixed(2)} bis ${mouseX.toFixed(2)} = ${partialIntegral.toFixed(4)}</p>
+            `;
+        }
+
+        function draw() {
+            const func = FUNCTIONS[currentFunc];
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 60;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const [xMin, xMax] = func.domain;
+            const [yMin, yMax] = func.range;
+
+            const toX = x => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+            const toY = y => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding);
+
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(0));
+            ctx.lineTo(toX(xMax), toY(0));
+            ctx.moveTo(toX(0), toY(yMin));
+            ctx.lineTo(toX(0), toY(yMax));
+            ctx.stroke();
+
+            const effectiveLower = func.integralType === 'pole_lower' ? lowerLimit : (func.polePosition !== undefined ? func.polePosition + 0.01 : xMin);
+            const effectiveUpper = func.integralType === 'infinite_upper' ? upperLimit : xMax;
+
+            // Draw filled area
+            ctx.fillStyle = func.convergent ? 'rgba(46, 204, 113, 0.3)' : 'rgba(231, 76, 60, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(toX(effectiveLower), toY(0));
+
+            for (let x = effectiveLower; x <= effectiveUpper; x += (effectiveUpper - effectiveLower) / 500) {
+                const y = func.f(x);
+                if (!isNaN(y) && isFinite(y) && y >= 0 && y <= yMax) {
+                    ctx.lineTo(toX(x), toY(y));
+                }
+            }
+
+            const yUpper = func.f(effectiveUpper);
+            if (!isNaN(yUpper) && isFinite(yUpper)) {
+                ctx.lineTo(toX(effectiveUpper), toY(yUpper));
+            }
+            ctx.lineTo(toX(effectiveUpper), toY(0));
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw function
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let started = false;
+            for (let x = xMin; x <= xMax; x += (xMax - xMin) / 1000) {
+                const y = func.f(x);
+                if (!isNaN(y) && isFinite(y) && y >= yMin && y <= yMax) {
+                    if (!started) {
+                        ctx.moveTo(toX(x), toY(y));
+                        started = true;
+                    } else {
+                        ctx.lineTo(toX(x), toY(y));
+                    }
+                } else if (started) {
+                    ctx.stroke();
+                    ctx.beginPath();
+                    started = false;
+                }
+            }
+            if (started) ctx.stroke();
+
+            // Draw bounds
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+
+            if (func.integralType === 'pole_lower') {
+                ctx.beginPath();
+                ctx.moveTo(toX(effectiveLower), toY(yMin));
+                ctx.lineTo(toX(effectiveLower), toY(yMax));
+                ctx.stroke();
+            }
+
+            if (func.integralType === 'infinite_upper') {
+                ctx.beginPath();
+                ctx.moveTo(toX(effectiveUpper), toY(yMin));
+                ctx.lineTo(toX(effectiveUpper), toY(yMax));
+                ctx.stroke();
+
+                // Infinity marker
+                ctx.fillStyle = '#f39c12';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('→ ∞', toX(effectiveUpper) - 30, toY(0) - 10);
+            }
+
+            ctx.setLineDash([]);
+
+            // Draw pole marker
+            if (func.polePosition !== undefined) {
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(toX(func.polePosition), toY(yMin));
+                ctx.lineTo(toX(func.polePosition), toY(yMax));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('Polstelle', toX(func.polePosition) + 5, toY(yMax) + 20);
+            }
+
+            // Mouse indicator
+            if (mouseX !== null) {
+                const y = func.f(mouseX);
+
+                ctx.strokeStyle = '#9b59b6';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(toX(mouseX), toY(yMin));
+                ctx.lineTo(toX(mouseX), toY(yMax));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                if (!isNaN(y) && isFinite(y)) {
+                    ctx.fillStyle = '#9b59b6';
+                    ctx.beginPath();
+                    ctx.arc(toX(mouseX), toY(y), 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('x', toX(xMax) + 10, toY(0) + 5);
+            ctx.fillText('y', toX(0) - 15, toY(yMax) - 10);
+        }
+
+        updateInfo();
+        draw();
+    </script>
+</body>
+</html>

@@ -7,25 +7,28 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1400px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #e8daf0 0%, #d4cce0 100%);
             padding: 20px;
-            background-color: #f5f5f5;
+            min-height: 100vh;
         }
         h1 {
-            color: #2c3e50;
             text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
         }
         .container {
+            max-width: 1000px;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
+            gap: 30px;
             margin-bottom: 20px;
         }
         .control-group {
@@ -33,7 +36,7 @@
             flex-direction: column;
         }
         label {
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-weight: bold;
             color: #34495e;
         }
@@ -45,6 +48,7 @@
         }
         input[type="range"] {
             width: 100%;
+                    margin-top: 8px;
         }
         .canvas-grid {
             display: grid;
@@ -56,6 +60,7 @@
             border: 2px solid #2563eb;
             border-radius: 5px;
             width: 100%;
+            height: auto;
             background: white;
         }
         .canvas-title {
@@ -66,10 +71,10 @@
             text-align: center;
         }
         .description {
-            background: #f8fafc;
-            padding: 15px;
-            border-left: 3px solid #e2e8f0;
-            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
         }
         .example-buttons {
             display: grid;
@@ -91,10 +96,11 @@
             background: #1e40af;
         }
         .info {
-            background: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
             margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .info p {
             margin: 8px 0;
@@ -518,7 +524,11 @@
             }
 
             if (n > 20) {
-                html += '<div class="coeff-item">... (weitere Terme)</div>';
+                html += '<div class="coeff-item">... (weitere Terme)
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>';
             }
 
             coeffDiv.innerHTML = html;

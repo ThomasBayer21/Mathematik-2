@@ -5,180 +5,202 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualisierungen - Mathematik 2</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8fafc;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #e4e4ec 0%, #d0d0dc 100%);
             min-height: 100vh;
-            padding: 0;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            color: white;
-            padding: 3rem 0 2.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-        }
-
         h1 {
             text-align: center;
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            font-weight: 600;
         }
-
         .subtitle {
             text-align: center;
-            color: white;
-            font-size: 1.1rem;
-            opacity: 0.9;
-            font-weight: 300;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
         }
-
-        main {
-            padding: 3rem 0 2rem;
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-
+        .intro {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 35px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+            color: #555;
+        }
         .categories {
             display: grid;
             gap: 30px;
         }
-
-        .category {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e2e8f0;
-        }
-
         .category-title {
-            font-size: 1.5rem;
-            color: #1e293b;
-            margin-bottom: 1.5rem;
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
             font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e4e4ec;
         }
-
         .visualizations {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-
         .viz-card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+            transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
             color: inherit;
             display: block;
-            border: 2px solid #e2e8f0;
         }
-
         .viz-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-            border-color: #2563eb;
+            transform: translateX(5px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
-
+        .viz-card.integration {
+            border-left-color: #3498db;
+        }
+        .viz-card.dgl {
+            border-left-color: #c4d8bc;
+        }
+        .viz-card.numerical {
+            border-left-color: #e0c8b8;
+        }
+        .viz-card.series {
+            border-left-color: #d4cce0;
+        }
+        .viz-card.multivariable {
+            border-left-color: #bcd8d4;
+        }
+        .viz-card.advanced {
+            border-left-color: #d4c8b8;
+        }
         .viz-title {
-            font-size: 1.3rem;
+            font-size: 1.3em;
             font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.75rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
         }
-
         .viz-description {
-            color: #64748b;
-            font-size: 0.95rem;
+            color: #555;
             line-height: 1.6;
+            font-size: 0.95em;
         }
-
-        .viz-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .tag {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Mathematik 2</h1>
-            <p class="subtitle">Interaktive Visualisierungen</p>
-        </div>
-    </header>
+    <h1>Mathematik 2</h1>
+    <div class="subtitle">Interaktive Visualisierungen</div>
 
-    <main class="container">
+    <div class="container">
+        <div class="intro">
+            Diese Sammlung bietet interaktive Visualisierungen zu den
+            fundamentalen Konzepten der höheren Mathematik. Alle Darstellungen
+            sind direkt im Browser nutzbar und ermöglichen durch Parameteränderungen ein
+            tieferes Verständnis der mathematischen Zusammenhänge.
+        </div>
+
         <div class="categories">
             <!-- Integralrechnung -->
             <div class="category">
                 <h2 class="category-title">Integralrechnung</h2>
                 <div class="visualizations">
-                    <a href="1_Riemann_Summen.html" class="viz-card">
+                    <a href="1_Riemann_Summen.html" class="viz-card integration">
                         <div class="viz-title">Riemann-Summen</div>
                         <div class="viz-description">
                             Approximation der Fläche unter einer Kurve durch Rechtecke und Trapeze.
                         </div>
                     </a>
 
-                    <a href="4_Substitution_Visualisierung.html" class="viz-card">
+                    <a href="4_Substitution_Visualisierung.html" class="viz-card integration">
                         <div class="viz-title">Substitutionsmethode</div>
                         <div class="viz-description">
                             Integrationstechnik durch Variablenwechsel.
                         </div>
                     </a>
 
-                    <a href="7_Volumenintegral.html" class="viz-card">
+                    <a href="7_Volumenintegral.html" class="viz-card integration">
                         <div class="viz-title">Volumenintegral</div>
                         <div class="viz-description">
                             Berechnung von Rotationskörpern durch Integration.
                         </div>
                     </a>
 
-                    <a href="8_Flaeche_Zwischen_Funktionen.html" class="viz-card">
+                    <a href="8_Flaeche_Zwischen_Funktionen.html" class="viz-card integration">
                         <div class="viz-title">Fläche zwischen Funktionen</div>
                         <div class="viz-description">
                             Berechnung der Fläche zwischen zwei Kurven.
                         </div>
                     </a>
 
-                    <a href="9_Negative_Flaechen.html" class="viz-card">
+                    <a href="9_Negative_Flaechen.html" class="viz-card integration">
                         <div class="viz-title">Negative Funktionswerte</div>
                         <div class="viz-description">
                             Unterschied zwischen Integral und Flächeninhalt.
                         </div>
                     </a>
 
-                    <a href="10_Hauptsatz_DiffInt.html" class="viz-card">
+                    <a href="10_Hauptsatz_DiffInt.html" class="viz-card integration">
                         <div class="viz-title">Hauptsatz der Differential- und Integralrechnung</div>
                         <div class="viz-description">
                             Zusammenhang zwischen Ableitung und Integral.
+                        </div>
+                    </a>
+
+                    <a href="18_Bogenlaenge.html" class="viz-card integration">
+                        <div class="viz-title">Bogenlänge</div>
+                        <div class="viz-description">
+                            Berechnung der Länge von Kurven mittels Integration.
+                        </div>
+                    </a>
+
+                    <a href="19_Flaechenintegral.html" class="viz-card integration">
+                        <div class="viz-title">Flächenintegral</div>
+                        <div class="viz-description">
+                            Integration über zweidimensionale Bereiche.
+                        </div>
+                    </a>
+
+                    <a href="20_Integralfunktion.html" class="viz-card integration">
+                        <div class="viz-title">Integralfunktion</div>
+                        <div class="viz-description">
+                            Visualisierung der Integralfunktion und ihrer Eigenschaften.
+                        </div>
+                    </a>
+
+                    <a href="21_Partielle_Integration.html" class="viz-card integration">
+                        <div class="viz-title">Partielle Integration</div>
+                        <div class="viz-description">
+                            Integrationstechnik für Produkte von Funktionen.
+                        </div>
+                    </a>
+
+                    <a href="22_Rotationskoerper_Oberflaeche.html" class="viz-card integration">
+                        <div class="viz-title">Rotationskörper-Oberfläche</div>
+                        <div class="viz-description">
+                            Berechnung der Oberfläche von Rotationskörpern.
+                        </div>
+                    </a>
+
+                    <a href="23_Uneigentliche_Integrale.html" class="viz-card integration">
+                        <div class="viz-title">Uneigentliche Integrale</div>
+                        <div class="viz-description">
+                            Integration über unbeschränkte Intervalle oder Funktionen.
                         </div>
                     </a>
                 </div>
@@ -188,35 +210,35 @@
             <div class="category">
                 <h2 class="category-title">Differentialgleichungen</h2>
                 <div class="visualizations">
-                    <a href="2_DGL_Richtungsfeld.html" class="viz-card">
+                    <a href="2_DGL_Richtungsfeld.html" class="viz-card dgl">
                         <div class="viz-title">Richtungsfeld</div>
                         <div class="viz-description">
                             Interaktive Visualisierung für DGL 1. Ordnung.
                         </div>
                     </a>
 
-                    <a href="13_Anfangswert_Randwert.html" class="viz-card">
+                    <a href="13_Anfangswert_Randwert.html" class="viz-card dgl">
                         <div class="viz-title">Anfangswert- vs Randwertproblem</div>
                         <div class="viz-description">
                             Unterschiede zwischen AWP und RWP bei DGL.
                         </div>
                     </a>
 
-                    <a href="14_Orthogonaltrajektorien.html" class="viz-card">
+                    <a href="14_Orthogonaltrajektorien.html" class="viz-card dgl">
                         <div class="viz-title">Orthogonaltrajektorien</div>
                         <div class="viz-description">
                             Kurven die eine Schar rechtwinklig schneiden.
                         </div>
                     </a>
 
-                    <a href="5_Schwingungen_2_Ordnung.html" class="viz-card">
+                    <a href="5_Schwingungen_2_Ordnung.html" class="viz-card dgl">
                         <div class="viz-title">Gedämpfte Schwingungen</div>
                         <div class="viz-description">
                             DGL 2. Ordnung mit verschiedenen Dämpfungstypen.
                         </div>
                     </a>
 
-                    <a href="6_Phasenportrait_Systeme.html" class="viz-card">
+                    <a href="6_Phasenportrait_Systeme.html" class="viz-card dgl">
                         <div class="viz-title">Phasenportrait</div>
                         <div class="viz-description">
                             Visualisierung von 2×2 DGL-Systemen.
@@ -229,7 +251,7 @@
             <div class="category">
                 <h2 class="category-title">Numerische Methoden</h2>
                 <div class="visualizations">
-                    <a href="3_Numerische_Methoden_Vergleich.html" class="viz-card">
+                    <a href="3_Numerische_Methoden_Vergleich.html" class="viz-card numerical">
                         <div class="viz-title">Euler vs Runge-Kutta</div>
                         <div class="viz-description">
                             Vergleich numerischer Verfahren für DGL.
@@ -242,14 +264,14 @@
             <div class="category">
                 <h2 class="category-title">Reihen und Approximation</h2>
                 <div class="visualizations">
-                    <a href="11_Potenzreihen_Taylor.html" class="viz-card">
+                    <a href="11_Potenzreihen_Taylor.html" class="viz-card series">
                         <div class="viz-title">Potenzreihen & Taylor-Approximation</div>
                         <div class="viz-description">
                             Taylor-Reihen, Konvergenz und Approximation von Funktionen.
                         </div>
                     </a>
 
-                    <a href="12_Fourier_Reihen.html" class="viz-card">
+                    <a href="12_Fourier_Reihen.html" class="viz-card series">
                         <div class="viz-title">Fourier-Reihen</div>
                         <div class="viz-description">
                             Periodische Funktionen, trigonometrische Polynome und Gibbsches Phänomen.
@@ -262,22 +284,29 @@
             <div class="category">
                 <h2 class="category-title">Funktionen mehrerer Variablen</h2>
                 <div class="visualizations">
-                    <a href="15_3D_Funktionen_Hoehenlinien.html" class="viz-card">
+                    <a href="15_3D_Funktionen_Hoehenlinien.html" class="viz-card multivariable">
                         <div class="viz-title">3D-Funktionen und Höhenlinien</div>
                         <div class="viz-description">
                             Visualisierung von z = f(x,y) mit Höhenlinien und 3D-Ansicht.
                         </div>
                     </a>
 
-                    <a href="16_Gradient_Richtungsableitung.html" class="viz-card">
+                    <a href="16_Gradient_Richtungsableitung.html" class="viz-card multivariable">
                         <div class="viz-title">Gradient und Richtungsableitung</div>
                         <div class="viz-description">
                             Partielle Ableitungen, Gradient und steilster Anstieg.
                         </div>
                     </a>
+
+                    <a href="17_Ableitung_Vergleich.html" class="viz-card multivariable">
+                        <div class="viz-title">Ableitungsvergleich</div>
+                        <div class="viz-description">
+                            Vergleich verschiedener Ableitungskonzepte in mehreren Dimensionen.
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </body>
 </html>
