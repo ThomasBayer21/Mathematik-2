@@ -151,6 +151,7 @@
             <button class="example-btn" onclick="loadExample('circles')">Konzentrische Kreise</button>
             <button class="example-btn" onclick="loadExample('parabolas')">Parabelschar</button>
             <button class="example-btn" onclick="loadExample('exponential')">Exponentialfunktionen</button>
+            <button class="example-btn" onclick="loadExample('apollonian')">Apollonius-Kreise</button>
         </div>
 
         <div class="controls">
@@ -162,6 +163,7 @@
                     <option value="parabolas">Parabelschar (y = Cx²)</option>
                     <option value="exponential">Exponentialfunktionen (y = Ce^x)</option>
                     <option value="hyperbolas">Hyperbeln (xy = C)</option>
+                    <option value="apollonian">Apollonius-Kreise (y-Achse berührend)</option>
                 </select>
             </div>
         </div>
@@ -327,6 +329,35 @@
                 getCValues: function() {
                     return Array.from({length: this.numCurves}, (_, i) => -3 + i * 6/(this.numCurves-1));
                 }
+            },
+            apollonian: {
+                name: 'Apollonius-Kreise (y-Achse berührend)',
+                original: C => x => {
+                    // Kreise: (x-C)² + y² = C², also y² = 2Cx - x²
+                    const val = 2 * C * x - x * x;
+                    return val >= 0 ? Math.sqrt(val) : NaN;
+                },
+                orthogonal: C => {
+                    // Kreise die x-Achse berühren: x² + (y-K)² = K²
+                    // y = K ± √(K² - x²)
+                    return {
+                        upper: x => {
+                            const val = C * C - x * x;
+                            return val >= 0 ? C + Math.sqrt(val) : NaN;
+                        },
+                        lower: x => {
+                            const val = C * C - x * x;
+                            return val >= 0 ? C - Math.sqrt(val) : NaN;
+                        }
+                    };
+                },
+                dglOriginal: 'y\' = (y² - x²)/(2xy)',
+                dglOrthogonal: 'y\' = 2xy/(x² - y²)',
+                description: 'Kreise, die die y-Achse berühren, werden orthogonal von Kreisen geschnitten, die die x-Achse berühren.',
+                numCurves: 9,
+                getCValues: function() {
+                    return Array.from({length: this.numCurves}, (_, i) => -2 + i * 4/(this.numCurves-1)).filter(c => c !== 0);
+                }
             }
         };
 
@@ -433,6 +464,13 @@
                     };
                     drawCurve(funcNeg(C), -range, range, 'rgba(37, 99, 235, 0.5)', 1.5);
                 }
+                if (famKey === 'apollonian') {
+                    const funcNeg = C => x => {
+                        const val = 2 * C * x - x * x;
+                        return val >= 0 ? -Math.sqrt(val) : NaN;
+                    };
+                    drawCurve(funcNeg(C), -range, range, 'rgba(37, 99, 235, 0.5)', 1.5);
+                }
 
                 originalCurves.push({ func, C });
             });
@@ -454,6 +492,8 @@
                 C = y0 * y0 + 2 * x0;
             } else if (famKey === 'hyperbolas') {
                 C = x0 * x0 - y0 * y0;
+            } else if (famKey === 'apollonian') {
+                C = (x0 * x0 + y0 * y0) / (2 * y0);
             }
 
             const funcOrObj = famData.orthogonal(C);
@@ -545,7 +585,7 @@
         function loadExample(type) {
             familySelect.value = type;
             clearCurves();
-            if (type === 'radial' || type === 'circles') {
+            if (type === 'radial' || type === 'circles' || type === 'apollonian') {
                 drawAllCurves();
             }
         }

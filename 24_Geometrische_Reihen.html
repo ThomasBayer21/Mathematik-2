@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometrische Reihen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8daf0 0%, #d4cce0 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            max-width: 100%;
+        }
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .example-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 12px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .example-btn:hover {
+            background: #1e40af;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .interpretation h3 {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 16px;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        .formula-box {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .formula {
+            font-size: 16px;
+            color: #2563eb;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .convergence-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .convergent {
+            background: #d4edda;
+            color: #155724;
+        }
+        .divergent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .anim-btn {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .anim-btn:hover {
+            background: #229954;
+        }
+        .anim-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .terms-display {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .term {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 3px 0;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Geometrische Reihen</h1>
+
+        <div class="description">
+            <p><strong>Geometrische Reihe:</strong> ∑<sub>n=0</sub><sup>∞</sup> a·r<sup>n</sup> = a/(1-r) für |r| < 1</p>
+            <p><strong>Konvergenz:</strong> Die Reihe konvergiert genau dann, wenn |r| < 1</p>
+            <p>a = Anfangsglied, r = Quotient (Verhältnis aufeinanderfolgender Glieder)</p>
+        </div>
+
+        <div class="example-buttons">
+            <button class="example-btn" onclick="loadExample('converge1')">r = 0.5</button>
+            <button class="example-btn" onclick="loadExample('converge2')">r = -0.5</button>
+            <button class="example-btn" onclick="loadExample('converge3')">r = 0.8</button>
+            <button class="example-btn" onclick="loadExample('diverge1')">r = 1.1</button>
+            <button class="example-btn" onclick="loadExample('diverge2')">r = -1.2</button>
+            <button class="example-btn" onclick="loadExample('zeno')">Zenon (r=0.5)</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Anfangsglied a: <span id="aValue">1.0</span></label>
+                <input type="range" id="a" min="0.1" max="5" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>Quotient r: <span id="rValue">0.5</span></label>
+                <input type="range" id="r" min="-1.5" max="1.5" step="0.05" value="0.5">
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Terme n: <span id="nValue">10</span></label>
+                <input type="range" id="n" min="1" max="50" value="10">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c;"></div>
+                <span>Einzelne Terme</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #2563eb;"></div>
+                <span>Partialsumme S<sub>n</sub></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #27ae60; height: 3px;"></div>
+                <span>Grenzwert (falls konvergent)</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="900" height="500"></canvas>
+
+        <div class="animation-controls">
+            <button class="anim-btn" onclick="toggleAnimation()">Animation starten</button>
+            <button class="anim-btn" onclick="resetAnimation()">Zurücksetzen</button>
+        </div>
+
+        <div class="formula-box">
+            <h4 style="margin-top: 0; color: #2563eb;">Geometrische Reihe:</h4>
+            <div class="formula" id="seriesFormula"></div>
+            <div class="formula" id="sumFormula"></div>
+        </div>
+
+        <div class="info">
+            <p><strong>Anzahl Terme:</strong> <span id="nTerms">0</span></p>
+            <p><strong>Partialsumme S<sub>n</sub>:</strong> <span id="partialSum">0</span></p>
+            <p><strong>Grenzwert:</strong> <span id="limit">-</span></p>
+            <p><strong>Status:</strong> <span id="convergenceStatus"></span></p>
+            <p><strong>|r| =</strong> <span id="absR">0</span></p>
+        </div>
+
+        <div class="terms-display">
+            <h4 style="margin-top: 0; color: #64748b;">Terme der Reihe:</h4>
+            <div id="termsDisplay"></div>
+        </div>
+
+        <div class="interpretation">
+            <h3>Interpretation</h3>
+            <p id="interpretation">
+                Wähle Parameter und beobachte das Konvergenzverhalten der geometrischen Reihe.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const aSlider = document.getElementById('a');
+        const rSlider = document.getElementById('r');
+        const nSlider = document.getElementById('n');
+        const aValue = document.getElementById('aValue');
+        const rValue = document.getElementById('rValue');
+        const nValue = document.getElementById('nValue');
+
+        let isAnimating = false;
+        let currentAnimN = 0;
+        let animationId = null;
+
+        function geometricTerm(a, r, n) {
+            return a * Math.pow(r, n);
+        }
+
+        function partialSum(a, r, n) {
+            if (Math.abs(r - 1) < 0.0001) {
+                return a * (n + 1);
+            }
+            return a * (1 - Math.pow(r, n + 1)) / (1 - r);
+        }
+
+        function seriesLimit(a, r) {
+            if (Math.abs(r) >= 1) {
+                return null;
+            }
+            return a / (1 - r);
+        }
+
+        function toCanvasX(x, xMax) {
+            const padding = 60;
+            const width = canvas.width - 2 * padding;
+            return padding + (x / xMax) * width;
+        }
+
+        function toCanvasY(y, yMin, yMax) {
+            const padding = 50;
+            const height = canvas.height - 2 * padding;
+            return canvas.height - padding - (y - yMin) / (yMax - yMin) * height;
+        }
+
+        function drawAxes(xMax, yMin, yMax) {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, xMax), toCanvasY(0, yMin, yMax));
+            ctx.lineTo(toCanvasX(xMax, xMax), toCanvasY(0, yMin, yMax));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, xMax), toCanvasY(yMin, yMin, yMax));
+            ctx.lineTo(toCanvasX(0, xMax), toCanvasY(yMax, yMin, yMax));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('n', toCanvasX(xMax, xMax) + 10, toCanvasY(0, yMin, yMax) + 5);
+            ctx.fillText('Wert', toCanvasX(0, xMax) + 10, toCanvasY(yMax, yMin, yMax) - 10);
+        }
+
+        function drawTerms(a, r, n, yMin, yMax) {
+            const maxN = isAnimating ? currentAnimN : n;
+
+            // Zeichne Terme als Balken
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.6)';
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+
+            for (let i = 0; i <= maxN; i++) {
+                const term = geometricTerm(a, r, i);
+                if (Math.abs(term) > 1000) break;
+
+                const x = toCanvasX(i, n);
+                const y0 = toCanvasY(0, yMin, yMax);
+                const y1 = toCanvasY(term, yMin, yMax);
+
+                const barWidth = Math.min(20, (canvas.width - 120) / (n + 1) * 0.6);
+
+                ctx.fillRect(x - barWidth/2, Math.min(y0, y1), barWidth, Math.abs(y1 - y0));
+                ctx.strokeRect(x - barWidth/2, Math.min(y0, y1), barWidth, Math.abs(y1 - y0));
+            }
+        }
+
+        function drawPartialSums(a, r, n, yMin, yMax) {
+            const maxN = isAnimating ? currentAnimN : n;
+
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let started = false;
+            for (let i = 0; i <= maxN; i++) {
+                const sum = partialSum(a, r, i);
+                if (Math.abs(sum) > 1000) break;
+
+                const x = toCanvasX(i, n);
+                const y = toCanvasY(sum, yMin, yMax);
+
+                if (!started) {
+                    ctx.moveTo(x, y);
+                    started = true;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+
+                // Punkt zeichnen
+                ctx.fillStyle = '#2563eb';
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawLimit(a, r, n, yMin, yMax) {
+            const limit = seriesLimit(a, r);
+            if (limit === null || Math.abs(limit) > 1000) return;
+
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0, n), toCanvasY(limit, yMin, yMax));
+            ctx.lineTo(toCanvasX(n, n), toCanvasY(limit, yMin, yMax));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Label
+            ctx.fillStyle = '#27ae60';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(`Grenzwert: ${limit.toFixed(3)}`, toCanvasX(n, n) - 120, toCanvasY(limit, yMin, yMax) - 10);
+        }
+
+        function displayTerms(a, r, n) {
+            const termsDiv = document.getElementById('termsDisplay');
+            let html = '';
+
+            const maxDisplay = Math.min(n, 15);
+            for (let i = 0; i <= maxDisplay; i++) {
+                const term = geometricTerm(a, r, i);
+                const sum = partialSum(a, r, i);
+                html += `<div class="term">n=${i}: a·r^${i} = ${term.toFixed(4)}, S_${i} = ${sum.toFixed(4)}</div>`;
+            }
+
+            if (n > 15) {
+                html += '<div class="term">... (weitere Terme)</div>';
+                const lastTerm = geometricTerm(a, r, n);
+                const lastSum = partialSum(a, r, n);
+                html += `<div class="term">n=${n}: a·r^${n} = ${lastTerm.toFixed(4)}, S_${n} = ${lastSum.toFixed(4)}</div>`;
+            }
+
+            termsDiv.innerHTML = html;
+        }
+
+        function updateInterpretation(a, r, n) {
+            const interp = document.getElementById('interpretation');
+            const absR = Math.abs(r);
+
+            let text = `<strong>Geometrische Reihe</strong> mit a = ${a.toFixed(2)} und r = ${r.toFixed(2)}.<br><br>`;
+
+            if (absR < 1) {
+                text += `Da |r| = ${absR.toFixed(3)} < 1 ist, <strong>konvergiert</strong> die Reihe gegen ${seriesLimit(a, r).toFixed(3)}.<br>`;
+                text += `Je mehr Terme addiert werden, desto näher kommt die Partialsumme diesem Grenzwert.`;
+            } else if (absR > 1) {
+                text += `Da |r| = ${absR.toFixed(3)} > 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
+                text += `Die Terme werden immer größer (betragsmäßig), die Reihe hat keinen Grenzwert.`;
+            } else {
+                text += `Da |r| = 1 ist, <strong>divergiert</strong> die Reihe.<br>`;
+                if (r === 1) {
+                    text += `Bei r = 1 ist S_n = a·(n+1), die Summe wächst linear.`;
+                } else {
+                    text += `Bei r = -1 oszilliert die Summe zwischen zwei Werten.`;
+                }
+            }
+
+            interp.innerHTML = text;
+        }
+
+        function draw() {
+            const a = parseFloat(aSlider.value);
+            const r = parseFloat(rSlider.value);
+            const n = parseInt(nSlider.value);
+
+            aValue.textContent = a.toFixed(1);
+            rValue.textContent = r.toFixed(2);
+            nValue.textContent = n;
+
+            // Dynamische y-Achse
+            let yMax = Math.max(Math.abs(a), Math.abs(seriesLimit(a, r) || 0));
+            let yMin = -yMax;
+
+            for (let i = 0; i <= n; i++) {
+                const term = geometricTerm(a, r, i);
+                const sum = partialSum(a, r, i);
+                yMax = Math.max(yMax, Math.abs(term), Math.abs(sum));
+            }
+            yMax = Math.min(yMax * 1.2, 100);
+            yMin = -yMax;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes(n, yMin, yMax);
+            drawTerms(a, r, n, yMin, yMax);
+            drawPartialSums(a, r, n, yMin, yMax);
+            drawLimit(a, r, n, yMin, yMax);
+
+            // Update Info
+            document.getElementById('nTerms').textContent = n + 1;
+            document.getElementById('partialSum').textContent = partialSum(a, r, n).toFixed(4);
+
+            const limit = seriesLimit(a, r);
+            document.getElementById('limit').textContent = limit !== null ? limit.toFixed(4) : 'nicht existent (divergent)';
+
+            const absR = Math.abs(r);
+            document.getElementById('absR').textContent = absR.toFixed(3);
+
+            const isConvergent = absR < 1;
+            const statusHTML = isConvergent
+                ? '<span class="convergence-indicator convergent">Konvergent</span>'
+                : '<span class="convergence-indicator divergent">Divergent</span>';
+            document.getElementById('convergenceStatus').innerHTML = statusHTML;
+
+            // Formeln
+            document.getElementById('seriesFormula').textContent = `∑(n=0 bis ∞) ${a.toFixed(2)} · (${r.toFixed(2)})^n`;
+            if (isConvergent) {
+                document.getElementById('sumFormula').textContent = `= ${a.toFixed(2)} / (1 - ${r.toFixed(2)}) = ${limit.toFixed(4)}`;
+            } else {
+                document.getElementById('sumFormula').textContent = `= divergent (kein Grenzwert)`;
+            }
+
+            displayTerms(a, r, n);
+            updateInterpretation(a, r, n);
+        }
+
+        function toggleAnimation() {
+            if (isAnimating) {
+                isAnimating = false;
+                cancelAnimationFrame(animationId);
+            } else {
+                isAnimating = true;
+                currentAnimN = 0;
+                animate();
+            }
+        }
+
+        function resetAnimation() {
+            isAnimating = false;
+            cancelAnimationFrame(animationId);
+            currentAnimN = 0;
+            draw();
+        }
+
+        function animate() {
+            if (!isAnimating) return;
+
+            const n = parseInt(nSlider.value);
+
+            if (currentAnimN <= n) {
+                draw();
+                currentAnimN++;
+                animationId = setTimeout(() => requestAnimationFrame(animate), 200);
+            } else {
+                isAnimating = false;
+                draw();
+            }
+        }
+
+        function loadExample(type) {
+            switch(type) {
+                case 'converge1':
+                    aSlider.value = 1;
+                    rSlider.value = 0.5;
+                    nSlider.value = 10;
+                    break;
+                case 'converge2':
+                    aSlider.value = 1;
+                    rSlider.value = -0.5;
+                    nSlider.value = 15;
+                    break;
+                case 'converge3':
+                    aSlider.value = 1;
+                    rSlider.value = 0.8;
+                    nSlider.value = 20;
+                    break;
+                case 'diverge1':
+                    aSlider.value = 1;
+                    rSlider.value = 1.1;
+                    nSlider.value = 10;
+                    break;
+                case 'diverge2':
+                    aSlider.value = 1;
+                    rSlider.value = -1.2;
+                    nSlider.value = 10;
+                    break;
+                case 'zeno':
+                    aSlider.value = 1;
+                    rSlider.value = 0.5;
+                    nSlider.value = 10;
+                    break;
+            }
+            draw();
+        }
+
+        aSlider.addEventListener('input', draw);
+        rSlider.addEventListener('input', draw);
+        nSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>
