@@ -54,8 +54,6 @@
             display: block;
             margin: 20px auto;
             background: white;
-            max-width: 100%;
-            height: auto;
         }
         .description {
             text-align: center;
@@ -456,6 +454,84 @@
             return { solution, omega0, zeta, lambda1, lambda2, type, discriminant, envelope };
         }
 
+        function drawPhasePortrait(m, c, k, y0, v0) {
+            const padding = 40;
+            const yMax = 2.5;
+            const vMax = 5;
+
+            const toX = (y) => padding + ((y + yMax) / (2 * yMax)) * (phaseCanvas.width - 2 * padding);
+            const toY = (v) => phaseCanvas.height - padding - ((v + vMax) / (2 * vMax)) * (phaseCanvas.height - 2 * padding);
+
+            // Draw axes
+            phaseCtx.strokeStyle = '#2c3e50';
+            phaseCtx.lineWidth = 2;
+            phaseCtx.beginPath();
+            phaseCtx.moveTo(toX(-yMax), toY(0));
+            phaseCtx.lineTo(toX(yMax), toY(0));
+            phaseCtx.moveTo(toX(0), toY(-vMax));
+            phaseCtx.lineTo(toX(0), toY(vMax));
+            phaseCtx.stroke();
+
+            // Labels
+            phaseCtx.fillStyle = '#2c3e50';
+            phaseCtx.font = 'bold 14px Arial';
+            phaseCtx.fillText('y', toX(yMax) + 10, toY(0) + 5);
+            phaseCtx.fillText("y'", toX(0) + 10, toY(vMax) - 10);
+
+            // Draw trajectory
+            phaseCtx.strokeStyle = '#8e44ad';
+            phaseCtx.lineWidth = 2;
+            phaseCtx.beginPath();
+
+            const dt = 0.01;
+            let y = y0;
+            let v = v0;
+            let started = false;
+
+            for (let t = 0; t < 20; t += dt) {
+                const a = (-c * v - k * y) / m; // y'' = (-c*y' - k*y) / m
+                v += a * dt;
+                y += v * dt;
+
+                if (Math.abs(y) < yMax && Math.abs(v) < vMax) {
+                    const x = toX(y);
+                    const yc = toY(v);
+                    if (!started) {
+                        phaseCtx.moveTo(x, yc);
+                        started = true;
+                    } else {
+                        phaseCtx.lineTo(x, yc);
+                    }
+                } else {
+                    break;
+                }
+            }
+            phaseCtx.stroke();
+
+            // Draw starting point
+            phaseCtx.fillStyle = '#e74c3c';
+            phaseCtx.beginPath();
+            phaseCtx.arc(toX(y0), toY(v0), 5, 0, 2 * Math.PI);
+            phaseCtx.fill();
+
+            // Draw grid
+            phaseCtx.strokeStyle = '#ecf0f1';
+            phaseCtx.lineWidth = 1;
+            for (let i = -2; i <= 2; i++) {
+                if (i !== 0) {
+                    phaseCtx.beginPath();
+                    phaseCtx.moveTo(toX(i), 0);
+                    phaseCtx.lineTo(toX(i), phaseCanvas.height);
+                    phaseCtx.stroke();
+
+                    phaseCtx.beginPath();
+                    phaseCtx.moveTo(0, toY(i * 2));
+                    phaseCtx.lineTo(phaseCanvas.width, toY(i * 2));
+                    phaseCtx.stroke();
+                }
+            }
+        }
+
         function drawSolution(solution, envelope) {
             // Zeichne Envelope (Hüllkurve) für unterkritisch
             if (envelope) {
@@ -565,6 +641,10 @@
             drawAxes();
             drawSolution(result.solution, result.envelope);
 
+            // Draw phase portrait
+            phaseCtx.clearRect(0, 0, phaseCanvas.width, phaseCanvas.height);
+            drawPhasePortrait(m, c, k, y0, v0);
+
             // Update equation
             document.getElementById('equation').textContent =
                 `${m.toFixed(1)}y'' + ${c.toFixed(1)}y' + ${k.toFixed(1)}y = 0`;
@@ -587,6 +667,100 @@
 
             updateTypeLabel(result.discriminant);
             updateInterpretation(m, c, k, result.zeta, result.discriminant);
+        }
+
+        function toggleAnimation() {
+            isAnimating = !isAnimating;
+            const btn = document.getElementById('animBtn');
+            if (isAnimating) {
+                btn.textContent = 'Animation stoppen';
+                animate();
+            } else {
+                btn.textContent = 'Animation starten';
+            }
+        }
+
+        function resetAnimation() {
+            isAnimating = false;
+            animationTime = 0;
+            document.getElementById('animBtn').textContent = 'Animation starten';
+            document.getElementById('currentTime').textContent = '0.00';
+            draw();
+        }
+
+        function animate() {
+            if (!isAnimating) return;
+
+            animationTime += 0.05;
+            document.getElementById('currentTime').textContent = animationTime.toFixed(2);
+
+            const m = parseFloat(sliders.m.value);
+            const c = parseFloat(sliders.c.value);
+            const k = parseFloat(sliders.k.value);
+            const y0 = parseFloat(sliders.y0.value);
+            const v0 = parseFloat(sliders.v0.value);
+
+            const result = solveDGL(m, c, k, y0, v0);
+
+            // Draw time marker on main canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes();
+            drawSolution(result.solution, result.envelope);
+
+            // Draw current time marker
+            if (animationTime <= tMax) {
+                const x = toCanvasX(animationTime);
+                const y = toCanvasY(result.solution(animationTime));
+
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // Animate phase portrait
+            phaseCtx.clearRect(0, 0, phaseCanvas.width, phaseCanvas.height);
+            drawPhasePortrait(m, c, k, y0, v0);
+
+            // Draw animated point on phase portrait
+            if (animationTime <= tMax) {
+                const padding = 40;
+                const yMax = 2.5;
+                const vMax = 5;
+                const toX = (y) => padding + ((y + yMax) / (2 * yMax)) * (phaseCanvas.width - 2 * padding);
+                const toY = (v) => phaseCanvas.height - padding - ((v + vMax) / (2 * vMax)) * (phaseCanvas.height - 2 * padding);
+
+                const currentY = result.solution(animationTime);
+                // v(t) = y'(t) - numerisch berechnen
+                const dt = 0.001;
+                const currentV = (result.solution(animationTime + dt) - result.solution(animationTime - dt)) / (2 * dt);
+
+                if (Math.abs(currentY) < yMax && Math.abs(currentV) < vMax) {
+                    phaseCtx.fillStyle = '#27ae60';
+                    phaseCtx.strokeStyle = 'white';
+                    phaseCtx.lineWidth = 2;
+                    phaseCtx.beginPath();
+                    phaseCtx.arc(toX(currentY), toY(currentV), 7, 0, 2 * Math.PI);
+                    phaseCtx.fill();
+                    phaseCtx.stroke();
+                }
+            }
+
+            if (animationTime > tMax) {
+                resetAnimation();
+                return;
+            }
+
+            requestAnimationFrame(animate);
         }
 
         function loadExample(type) {

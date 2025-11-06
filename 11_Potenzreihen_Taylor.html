@@ -56,8 +56,6 @@
             display: block;
             margin: 20px auto;
             background: white;
-            max-width: 100%;
-            height: auto;
         }
         .description {
             text-align: center;
@@ -225,7 +223,7 @@
             </div>
         </div>
 
-        <canvas id="canvas" width="1000" height="500"></canvas>
+        <canvas id="canvas" width="900" height="500"></canvas>
 
         <div class="formula-box">
             <h4 style="margin-top: 0; color: #2563eb;">Taylor-Reihe (Entwicklung um x₀):</h4>
@@ -249,6 +247,10 @@
             <p id="interpretation">
                 Wähle eine Funktion und beobachte, wie die Taylor-Approximation konvergiert.
             </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
         </div>
     </div>
 
@@ -526,11 +528,7 @@
                 html += '<div class="term">... (weitere Terme)</div>';
             }
 
-            termsDiv.innerHTML = html || '<div class="term">Keine signifikanten Terme
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
-        </div>
-    </div>';
+            termsDiv.innerHTML = html || '<div class="term">Keine signifikanten Terme</div>';
         }
 
         function updateInterpretation(funcData, n, x0) {
