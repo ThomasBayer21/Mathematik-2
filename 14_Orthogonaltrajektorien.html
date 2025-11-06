@@ -220,9 +220,18 @@
             radial: {
                 name: 'y = Cx (Geraden durch Ursprung)',
                 original: C => x => C * x,
-                orthogonal: C => x => {
-                    if (C === 0) return 0;
-                    return -Math.sqrt(C * C - x * x);
+                orthogonal: C => {
+                    // Kreise: x² + y² = R², R = C
+                    return {
+                        upper: x => {
+                            const val = C * C - x * x;
+                            return val >= 0 ? Math.sqrt(val) : NaN;
+                        },
+                        lower: x => {
+                            const val = C * C - x * x;
+                            return val >= 0 ? -Math.sqrt(val) : NaN;
+                        }
+                    };
                 },
                 dglOriginal: 'y\' = y/x',
                 dglOrthogonal: 'y\' = -x/y',
@@ -234,7 +243,10 @@
             },
             circles: {
                 name: 'x² + y² = C (Konzentrische Kreise)',
-                original: C => x => Math.sqrt(Math.max(0, C - x * x)),
+                original: C => x => {
+                    const val = C - x * x;
+                    return val >= 0 ? Math.sqrt(val) : NaN;
+                },
                 orthogonal: C => x => C * x,
                 dglOriginal: 'y\' = -x/y',
                 dglOrthogonal: 'y\' = y/x',
@@ -247,40 +259,73 @@
             parabolas: {
                 name: 'y = Cx² (Parabelschar)',
                 original: C => x => C * x * x,
-                orthogonal: C => x => {
-                    // y = -1/(2x) + C (nicht analytisch einfach)
-                    return -0.5 / x + C;
+                orthogonal: C => {
+                    // x² + 2y² = K
+                    return {
+                        upper: x => {
+                            const val = (C - x * x) / 2;
+                            return val >= 0 ? Math.sqrt(val) : NaN;
+                        },
+                        lower: x => {
+                            const val = (C - x * x) / 2;
+                            return val >= 0 ? -Math.sqrt(val) : NaN;
+                        }
+                    };
                 },
                 dglOriginal: 'y\' = 2y/x',
                 dglOrthogonal: 'y\' = -x/(2y)',
-                description: 'Parabelschar wird orthogonal von Hyperbel-ähnlichen Kurven geschnitten.',
+                description: 'Parabelschar wird orthogonal von Ellipsen geschnitten.',
                 numCurves: 9,
                 getCValues: function() {
-                    return Array.from({length: this.numCurves}, (_, i) => -1 + i * 2/(this.numCurves-1));
+                    return Array.from({length: this.numCurves}, (_, i) => -0.8 + i * 1.6/(this.numCurves-1));
                 }
             },
             exponential: {
                 name: 'y = Ce^x (Exponentialfunktionen)',
                 original: C => x => C * Math.exp(x),
-                orthogonal: C => x => -Math.exp(-x) + C,
+                orthogonal: C => {
+                    // y² + 2x = K
+                    return {
+                        upper: x => {
+                            const val = C - 2 * x;
+                            return val >= 0 ? Math.sqrt(val) : NaN;
+                        },
+                        lower: x => {
+                            const val = C - 2 * x;
+                            return val >= 0 ? -Math.sqrt(val) : NaN;
+                        }
+                    };
+                },
                 dglOriginal: 'y\' = y',
                 dglOrthogonal: 'y\' = -1/y',
-                description: 'Exponentialfunktionen werden orthogonal von speziellen Kurven geschnitten.',
+                description: 'Exponentialfunktionen werden orthogonal von Parabeln geschnitten.',
                 numCurves: 9,
                 getCValues: function() {
-                    return Array.from({length: this.numCurves}, (_, i) => 0.2 + i * 1.6/(this.numCurves-1));
+                    return Array.from({length: this.numCurves}, (_, i) => 0.1 + i * 0.4/(this.numCurves-1));
                 }
             },
             hyperbolas: {
                 name: 'xy = C (Hyperbeln)',
                 original: C => x => C / x,
-                orthogonal: C => x => x + C,
+                orthogonal: C => {
+                    // x² - y² = K
+                    return {
+                        upper: x => {
+                            const val = x * x - C;
+                            return val >= 0 ? Math.sqrt(val) : NaN;
+                        },
+                        lower: x => {
+                            const val = x * x - C;
+                            return val >= 0 ? -Math.sqrt(val) : NaN;
+                        }
+                    };
+                },
                 dglOriginal: 'y\' = -y/x',
                 dglOrthogonal: 'y\' = x/y',
-                description: 'Hyperbeln werden orthogonal von Parabeln geschnitten.',
+                description: 'Hyperbeln werden orthogonal von senkrechten Hyperbeln geschnitten.',
                 numCurves: 11,
                 getCValues: function() {
-                    return Array.from({length: this.numCurves}, (_, i) => -5 + i * 10/(this.numCurves-1));
+                    return Array.from({length: this.numCurves}, (_, i) => -3 + i * 6/(this.numCurves-1));
                 }
             }
         };
@@ -382,7 +427,10 @@
 
                 // Auch negative y-Werte für symmetrische Kurven
                 if (famKey === 'circles') {
-                    const funcNeg = C => x => -Math.sqrt(Math.max(0, C - x * x));
+                    const funcNeg = C => x => {
+                        const val = C - x * x;
+                        return val >= 0 ? -Math.sqrt(val) : NaN;
+                    };
                     drawCurve(funcNeg(C), -range, range, 'rgba(37, 99, 235, 0.5)', 1.5);
                 }
 
@@ -401,15 +449,24 @@
             } else if (famKey === 'circles') {
                 C = y0 / x0;
             } else if (famKey === 'parabolas') {
-                C = y0 + 0.5 / x0;
+                C = x0 * x0 + 2 * y0 * y0;
             } else if (famKey === 'exponential') {
-                C = y0 + Math.exp(-x0);
+                C = y0 * y0 + 2 * x0;
             } else if (famKey === 'hyperbolas') {
-                C = y0 - x0;
+                C = x0 * x0 - y0 * y0;
             }
 
-            const func = famData.orthogonal(C);
-            drawCurve(func, -range, range, '#e74c3c', 2.5);
+            const funcOrObj = famData.orthogonal(C);
+
+            // Prüfe ob es ein einfache Funktion oder Objekt mit upper/lower ist
+            if (typeof funcOrObj === 'function') {
+                // Einfache Funktion (z.B. circles)
+                drawCurve(funcOrObj, -range, range, '#e74c3c', 2.5);
+            } else {
+                // Objekt mit upper und lower
+                drawCurve(funcOrObj.upper, -range, range, '#e74c3c', 2.5);
+                drawCurve(funcOrObj.lower, -range, range, '#e74c3c', 2.5);
+            }
 
             // Markiere Startpunkt
             ctx.fillStyle = '#27ae60';
@@ -420,7 +477,7 @@
             ctx.fill();
             ctx.stroke();
 
-            orthogonalCurves.push({ func, C, x0, y0 });
+            orthogonalCurves.push({ func: funcOrObj, C, x0, y0 });
         }
 
         function clearCurves() {
@@ -455,7 +512,13 @@
             drawOriginalFamily();
 
             orthogonalCurves.forEach(curve => {
-                drawCurve(curve.func, -range, range, '#e74c3c', 2.5);
+                // Prüfe ob es ein einfache Funktion oder Objekt mit upper/lower ist
+                if (typeof curve.func === 'function') {
+                    drawCurve(curve.func, -range, range, '#e74c3c', 2.5);
+                } else {
+                    drawCurve(curve.func.upper, -range, range, '#e74c3c', 2.5);
+                    drawCurve(curve.func.lower, -range, range, '#e74c3c', 2.5);
+                }
 
                 ctx.fillStyle = '#27ae60';
                 ctx.strokeStyle = 'white';
