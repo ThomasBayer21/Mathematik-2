@@ -303,7 +303,7 @@
             cubic: {
                 name: '1/n³',
                 term: (n) => 1 / (n * n * n),
-                limit: null, // Apéry constant / 2, approximation needed
+                limit: 0.9015, // ≈ -3ζ(3)/4 (numerische Approximation)
                 monotone: true,
                 nullSequence: true
             },
@@ -317,14 +317,14 @@
             sqrt: {
                 name: '1/√n',
                 term: (n) => 1 / Math.sqrt(n),
-                limit: null, // divergent
+                limit: -0.6048948, // Numerische Approximation (konvergiert langsam)
                 monotone: true,
                 nullSequence: true
             },
             ln: {
                 name: '1/ln(n+1)',
                 term: (n) => n === 0 ? 1 : 1 / Math.log(n + 1),
-                limit: null,
+                limit: -0.9242, // Numerische Approximation
                 monotone: true,
                 nullSequence: true
             },
@@ -511,19 +511,31 @@
 
             // Grenzwert
             if (seq.limit !== null) {
+                const limitY = toCanvasY(seq.limit, yMin, yMax, seriesCanvas);
+
                 serCtx.strokeStyle = '#27ae60';
-                serCtx.lineWidth = 2;
-                serCtx.setLineDash([5, 5]);
+                serCtx.lineWidth = 3;
+                serCtx.setLineDash([8, 4]);
                 serCtx.beginPath();
-                serCtx.moveTo(toCanvasX(0, n, seriesCanvas), toCanvasY(seq.limit, yMin, yMax, seriesCanvas));
-                serCtx.lineTo(toCanvasX(n, n, seriesCanvas), toCanvasY(seq.limit, yMin, yMax, seriesCanvas));
+                serCtx.moveTo(toCanvasX(0, n, seriesCanvas), limitY);
+                serCtx.lineTo(toCanvasX(n, n, seriesCanvas), limitY);
                 serCtx.stroke();
                 serCtx.setLineDash([]);
 
-                // Label
+                // Label mit Hintergrund
+                const labelText = `S = ${seq.limit.toFixed(4)}`;
+                serCtx.font = 'bold 13px Arial';
+                const textWidth = serCtx.measureText(labelText).width;
+                const labelX = toCanvasX(n, n, seriesCanvas) - textWidth - 20;
+                const labelY = limitY - 10;
+
+                // Weißer Hintergrund für bessere Lesbarkeit
+                serCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                serCtx.fillRect(labelX - 5, labelY - 15, textWidth + 10, 22);
+
+                // Text
                 serCtx.fillStyle = '#27ae60';
-                serCtx.font = 'bold 11px Arial';
-                serCtx.fillText(`Grenzwert: ${seq.limit.toFixed(4)}`, toCanvasX(n, n, seriesCanvas) - 110, toCanvasY(seq.limit, yMin, yMax, seriesCanvas) - 8);
+                serCtx.fillText(labelText, labelX, labelY);
             }
         }
 

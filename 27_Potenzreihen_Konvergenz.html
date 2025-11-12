@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potenzreihen - Konvergenzradius</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8daf0 0%, #d4cce0 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .theorem-box {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #2563eb;
+        }
+        .theorem-box h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select {
+            padding: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+        }
+        canvas {
+            border: 2px solid #2563eb;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            background: white;
+            max-width: 100%;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 3px;
+            border-radius: 1px;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+        .interpretation {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 3px solid #e2e8f0;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Potenzreihen - Konvergenzradius</h1>
+
+        <div class="description">
+            <p><strong>Konvergenzverhalten von Potenzreihen</strong></p>
+            <p>Visualisierung des Konvergenzradius R und Entwicklungspunkt x₀</p>
+        </div>
+
+        <div class="theorem-box">
+            <h3>Potenzreihe</h3>
+            <p>Eine Potenzreihe hat die Form: <strong>∑ aₙ·(x - x₀)ⁿ</strong></p>
+            <p><strong>Konvergenzradius R:</strong> Die Reihe konvergiert für |x - x₀| &lt; R</p>
+            <p>Für |x - x₀| &lt; R konvergiert die Reihe absolut</p>
+            <p>Für |x - x₀| &gt; R divergiert die Reihe</p>
+            <p>Für |x - x₀| = R ist das Verhalten individuell zu prüfen</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Potenzreihe</label>
+                <select id="series">
+                    <option value="geometric">∑xⁿ (geometrisch, R=1)</option>
+                    <option value="exp">∑xⁿ/n! (exp, R=∞)</option>
+                    <option value="factorial">∑n!·xⁿ (R=0)</option>
+                    <option value="alternating">∑(-1)ⁿ·xⁿ (R=1)</option>
+                    <option value="quadratic">∑n²·xⁿ (R=1)</option>
+                    <option value="root">∑xⁿ/√n (R=1)</option>
+                    <option value="ln">∑(-1)ⁿ⁺¹·xⁿ/n (ln(1+x), R=1)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Entwicklungspunkt x₀: <span id="x0Value">0</span></label>
+                <input type="range" id="x0" min="-3" max="3" step="0.1" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Anzahl Terme n: <span id="nValue">15</span></label>
+                <input type="range" id="n" min="1" max="100" value="15">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(39, 174, 96, 0.2); height: 15px; width: 30px;"></div>
+                <span>Konvergenzbereich |x - x₀| &lt; R</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #3498db;"></div>
+                <span>Potenzreihe ∑ aₙ·(x - x₀)ⁿ</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e74c3c;"></div>
+                <span>Originalfunktion</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #ff9500; height: 8px; width: 8px; border-radius: 50%;"></div>
+                <span>Entwicklungspunkt x₀</span>
+            </div>
+        </div>
+
+        <canvas id="canvas" width="1100" height="500"></canvas>
+
+        <div class="info">
+            <h3>Konvergenzinformationen</h3>
+            <div id="infoContent"></div>
+        </div>
+
+        <div class="interpretation">
+            <div id="interpretation">
+                Wähle eine Potenzreihe und beobachte das Konvergenzverhalten.
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #3498db; text-decoration: none; font-weight: 500;">← Zurück zur Übersicht</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const seriesSelect = document.getElementById('series');
+        const x0Slider = document.getElementById('x0');
+        const nSlider = document.getElementById('n');
+        const x0Value = document.getElementById('x0Value');
+        const nValue = document.getElementById('nValue');
+
+        function factorial(n) {
+            if (n <= 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        const powerSeries = {
+            geometric: {
+                name: '∑xⁿ',
+                coeff: (n) => 1,
+                radius: 1,
+                original: (x) => {
+                    if (Math.abs(1 - x) < 0.01) return NaN; // Nur Polstelle vermeiden
+                    return 1 / (1 - x);
+                },
+                hasOriginal: true,
+                description: 'Geometrische Reihe mit R = 1',
+                detail: 'Konvergiert für |x - x₀| < 1, d.h. im Intervall (x₀ - 1, x₀ + 1)'
+            },
+            exp: {
+                name: '∑xⁿ/n!',
+                coeff: (n) => 1 / factorial(n),
+                radius: Infinity,
+                original: (x) => Math.exp(x),
+                hasOriginal: true,
+                description: 'Exponentialreihe mit R = ∞ (konvergiert überall)',
+                detail: 'Konvergiert für alle x ∈ ℝ'
+            },
+            factorial: {
+                name: '∑n!·xⁿ',
+                coeff: (n) => factorial(n),
+                radius: 0,
+                original: null,
+                hasOriginal: false,
+                description: 'Fakultätsreihe mit R = 0',
+                detail: 'Konvergiert nur für x = x₀, divergiert für alle anderen Werte'
+            },
+            alternating: {
+                name: '∑(-1)ⁿ·xⁿ',
+                coeff: (n) => Math.pow(-1, n),
+                radius: 1,
+                original: (x) => {
+                    if (Math.abs(1 + x) < 0.01) return NaN; // Nur Polstelle vermeiden
+                    return 1 / (1 + x);
+                },
+                hasOriginal: true,
+                description: 'Alternierende geometrische Reihe mit R = 1',
+                detail: 'Konvergiert für |x - x₀| < 1, oszillierendes Verhalten'
+            },
+            quadratic: {
+                name: '∑n²·xⁿ',
+                coeff: (n) => n * n,
+                radius: 1,
+                original: (x) => {
+                    if (Math.abs(1 - x) < 0.01) return NaN; // Nur Polstelle vermeiden
+                    return x * (1 + x) / Math.pow(1 - x, 3);
+                },
+                hasOriginal: true,
+                description: 'Quadratisch gewichtete Reihe mit R = 1',
+                detail: 'Konvergiert für |x - x₀| < 1, schneller wachsende Koeffizienten'
+            },
+            root: {
+                name: '∑xⁿ/√n',
+                coeff: (n) => n === 0 ? 1 : 1 / Math.sqrt(n),
+                radius: 1,
+                original: null,
+                hasOriginal: false,
+                description: 'Wurzel-Reihe mit R = 1',
+                detail: 'Konvergiert für |x - x₀| < 1, langsam fallende Koeffizienten'
+            },
+            ln: {
+                name: '∑(-1)ⁿ⁺¹·xⁿ/n',
+                coeff: (n) => n === 0 ? 0 : Math.pow(-1, n + 1) / n,
+                radius: 1,
+                original: (x) => {
+                    if (x <= -1) return NaN; // Vermeiden von ln(0) oder ln(negativer Wert)
+                    return x === 0 ? 0 : Math.log(1 + x);
+                },
+                hasOriginal: true,
+                description: 'Logarithmus-Reihe mit R = 1',
+                detail: 'ln(1 + x) für |x - x₀| < 1'
+            }
+        };
+
+        function evaluatePowerSeries(series, x, x0, n) {
+            let sum = 0;
+            const diff = x - x0;
+
+            for (let i = 0; i <= n; i++) {
+                const coeff = series.coeff(i);
+                const power = Math.pow(diff, i);
+                const term = coeff * power;
+
+                if (!isFinite(term)) {
+                    return NaN;
+                }
+
+                sum += term;
+
+                if (!isFinite(sum)) {
+                    return NaN;
+                }
+            }
+            return sum;
+        }
+
+        function toCanvasX(x) {
+            const xMin = -5;
+            const xMax = 5;
+            const padding = 80;
+            const width = canvas.width - 2 * padding;
+            return padding + ((x - xMin) / (xMax - xMin)) * width;
+        }
+
+        function toCanvasY(y) {
+            const yMin = -3;
+            const yMax = 3;
+            const paddingTop = 40;
+            const paddingBottom = 60;
+            const height = canvas.height - paddingTop - paddingBottom;
+            return canvas.height - paddingBottom - ((y - yMin) / (yMax - yMin)) * height;
+        }
+
+        function fromCanvasX(canvasX) {
+            const xMin = -5;
+            const xMax = 5;
+            const padding = 80;
+            const width = canvas.width - 2 * padding;
+            return xMin + ((canvasX - padding) / width) * (xMax - xMin);
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+
+            // X-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(-5), toCanvasY(0));
+            ctx.lineTo(toCanvasX(5), toCanvasY(0));
+            ctx.stroke();
+
+            // Y-Achse
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), toCanvasY(-3));
+            ctx.lineTo(toCanvasX(0), toCanvasY(3));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            for (let x = -4; x <= 4; x += 2) {
+                ctx.fillText(x.toString(), toCanvasX(x), toCanvasY(0) + 20);
+            }
+            ctx.textAlign = 'right';
+            for (let y = -2; y <= 2; y += 1) {
+                if (y !== 0) {
+                    ctx.fillText(y.toString(), toCanvasX(0) - 10, toCanvasY(y) + 4);
+                }
+            }
+            ctx.textAlign = 'left';
+            ctx.fillText('x', toCanvasX(5) + 10, toCanvasY(0) + 5);
+            ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(3) - 10);
+        }
+
+        function drawConvergenceRegion(x0, R) {
+            if (R === 0) return;
+
+            const x1 = R === Infinity ? -5 : x0 - R;
+            const x2 = R === Infinity ? 5 : x0 + R;
+
+            ctx.fillStyle = 'rgba(39, 174, 96, 0.15)';
+            ctx.fillRect(
+                toCanvasX(Math.max(-5, x1)),
+                toCanvasY(3),
+                toCanvasX(Math.min(5, x2)) - toCanvasX(Math.max(-5, x1)),
+                toCanvasY(-3) - toCanvasY(3)
+            );
+
+            // Grenzen des Konvergenzbereichs
+            if (R !== Infinity) {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+
+                if (x1 >= -5 && x1 <= 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(toCanvasX(x1), toCanvasY(-3));
+                    ctx.lineTo(toCanvasX(x1), toCanvasY(3));
+                    ctx.stroke();
+                }
+
+                if (x2 >= -5 && x2 <= 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(toCanvasX(x2), toCanvasY(-3));
+                    ctx.lineTo(toCanvasX(x2), toCanvasY(3));
+                    ctx.stroke();
+                }
+
+                ctx.setLineDash([]);
+            }
+        }
+
+        function drawDevelopmentPoint(x0) {
+            // Vertikale Linie
+            ctx.strokeStyle = '#ff9500';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(x0), toCanvasY(-3));
+            ctx.lineTo(toCanvasX(x0), toCanvasY(3));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Punkt
+            ctx.fillStyle = '#ff9500';
+            ctx.beginPath();
+            ctx.arc(toCanvasX(x0), toCanvasY(0), 6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#ff9500';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('x₀', toCanvasX(x0), toCanvasY(0) - 15);
+        }
+
+        function drawFunction(func, color, lineWidth = 2) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            let started = false;
+            let lastY = null;
+
+            const xMin = -5;
+            const xMax = 5;
+            const steps = 800; // Mehr Schritte für glattere Kurven
+
+            for (let i = 0; i <= steps; i++) {
+                const x = xMin + (i / steps) * (xMax - xMin);
+                const y = func(x);
+
+                if (isFinite(y)) {
+                    const canvasY = toCanvasY(y);
+                    const canvasX = toCanvasX(x);
+
+                    // Prüfe auf große Sprünge (Unstetigkeiten)
+                    if (lastY !== null && Math.abs(y - lastY) > 10) {
+                        started = false;
+                    }
+
+                    if (!started) {
+                        ctx.moveTo(canvasX, canvasY);
+                        started = true;
+                    } else {
+                        ctx.lineTo(canvasX, canvasY);
+                    }
+                    lastY = y;
+                } else {
+                    started = false;
+                    lastY = null;
+                }
+            }
+            ctx.stroke();
+        }
+
+        function draw() {
+            const seriesKey = seriesSelect.value;
+            const series = powerSeries[seriesKey];
+            const x0 = parseFloat(x0Slider.value);
+            const n = parseInt(nSlider.value);
+
+            x0Value.textContent = x0.toFixed(1);
+            nValue.textContent = n;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Konvergenzbereich
+            drawConvergenceRegion(x0, series.radius);
+
+            // Achsen
+            drawAxes();
+
+            // Entwicklungspunkt
+            drawDevelopmentPoint(x0);
+
+            // Originalfunktion (falls vorhanden)
+            if (series.hasOriginal) {
+                drawFunction((x) => series.original(x - x0), '#e74c3c', 2.5);
+            }
+
+            // Potenzreihe - Spezialfall für R=0
+            if (series.radius === 0) {
+                // Nur einen Punkt bei x0 zeichnen
+                const y0 = evaluatePowerSeries(series, x0, x0, n);
+                ctx.fillStyle = '#3498db';
+                ctx.beginPath();
+                ctx.arc(toCanvasX(x0), toCanvasY(y0), 5, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Text
+                ctx.fillStyle = '#3498db';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`(${x0.toFixed(1)}, ${y0.toFixed(2)})`, toCanvasX(x0), toCanvasY(y0) + 20);
+            } else {
+                drawFunction((x) => evaluatePowerSeries(series, x, x0, n), '#3498db', 3);
+            }
+
+            // Info aktualisieren
+            updateInfo(series, x0, n);
+            updateInterpretation(series, x0, n);
+        }
+
+        function updateInfo(series, x0, n) {
+            const infoContent = document.getElementById('infoContent');
+            let html = '';
+
+            html += `<p><strong>Potenzreihe:</strong> ${series.name}</p>`;
+            html += `<p><strong>Entwicklungspunkt:</strong> x₀ = ${x0.toFixed(1)}</p>`;
+            html += `<p><strong>Konvergenzradius:</strong> R = ${series.radius === Infinity ? '∞' : series.radius}</p>`;
+
+            if (series.radius === Infinity) {
+                html += `<p><strong>Konvergenzintervall:</strong> (-∞, +∞)</p>`;
+            } else if (series.radius === 0) {
+                html += `<p><strong>Konvergenzintervall:</strong> {${x0.toFixed(1)}} (nur einzelner Punkt)</p>`;
+            } else {
+                const left = x0 - series.radius;
+                const right = x0 + series.radius;
+                html += `<p><strong>Konvergenzintervall:</strong> (${left.toFixed(1)}, ${right.toFixed(1)})</p>`;
+            }
+
+            html += `<p><strong>Anzahl Terme:</strong> n = ${n}</p>`;
+            html += `<p><strong>Beschreibung:</strong> ${series.description}</p>`;
+
+            infoContent.innerHTML = html;
+        }
+
+        function updateInterpretation(series, x0, n) {
+            const interp = document.getElementById('interpretation');
+            let text = `<strong>${series.name}:</strong><br><br>`;
+            text += series.detail + '<br><br>';
+
+            if (series.radius === Infinity) {
+                text += 'Diese Potenzreihe hat einen <strong>unendlichen Konvergenzradius</strong> und konvergiert für alle reellen Zahlen.';
+            } else if (series.radius === 0) {
+                text += 'Diese Potenzreihe hat <strong>Konvergenzradius R = 0</strong> und konvergiert nur am Entwicklungspunkt x₀.';
+            } else {
+                text += `Diese Potenzreihe konvergiert im <strong>offenen Intervall (${(x0 - series.radius).toFixed(1)}, ${(x0 + series.radius).toFixed(1)})</strong>. `;
+                text += 'Außerhalb dieses Bereichs (grün markiert) divergiert die Reihe.';
+            }
+
+            if (series.hasOriginal) {
+                text += '<br><br>Die rote Kurve zeigt die Funktion, gegen die die Potenzreihe konvergiert.';
+            }
+
+            interp.innerHTML = text;
+        }
+
+        seriesSelect.addEventListener('change', draw);
+        x0Slider.addEventListener('input', draw);
+        nSlider.addEventListener('input', draw);
+
+        draw();
+    </script>
+</body>
+</html>
