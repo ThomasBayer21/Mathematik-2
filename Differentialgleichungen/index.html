@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Differentialgleichungen - Mathematik 2</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #e4e4ec 0%, #d0d0dc 100%);
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 1em;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .intro {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 35px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+            color: #555;
+        }
+        .visualizations {
+            display: grid;
+            gap: 20px;
+        }
+        .viz-card {
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 6px;
+            border-left: 4px solid #c4d8bc;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .viz-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        .viz-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .viz-description {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Differentialgleichungen</h1>
+    <div class="subtitle">Interaktive Visualisierungen</div>
+
+    <div class="container">
+        <a href="../index.html" class="back-link">← Zurück zur Übersicht</a>
+
+        <div class="intro">
+            Differentialgleichungen beschreiben die Änderungsraten von Größen und sind fundamental für die
+            Modellierung dynamischer Prozesse in Natur und Technik. Diese Visualisierungen helfen dabei,
+            Lösungskonzepte und das Verhalten von DGL-Systemen geometrisch zu verstehen.
+        </div>
+
+        <div class="visualizations">
+            <a href="2_DGL_Richtungsfeld.html" class="viz-card">
+                <div class="viz-title">Richtungsfeld</div>
+                <div class="viz-description">
+                    Interaktive Visualisierung für DGL 1. Ordnung.
+                </div>
+            </a>
+
+            <a href="13_Anfangswert_Randwert.html" class="viz-card">
+                <div class="viz-title">Anfangswert- vs Randwertproblem</div>
+                <div class="viz-description">
+                    Unterschiede zwischen AWP und RWP bei DGL.
+                </div>
+            </a>
+
+            <a href="14_Orthogonaltrajektorien.html" class="viz-card">
+                <div class="viz-title">Orthogonaltrajektorien</div>
+                <div class="viz-description">
+                    Kurven die eine Schar rechtwinklig schneiden.
+                </div>
+            </a>
+
+            <a href="5_Schwingungen_2_Ordnung.html" class="viz-card">
+                <div class="viz-title">Gedämpfte Schwingungen</div>
+                <div class="viz-description">
+                    DGL 2. Ordnung mit verschiedenen Dämpfungstypen.
+                </div>
+            </a>
+
+            <a href="6_Phasenportrait_Systeme.html" class="viz-card">
+                <div class="viz-title">Phasenportrait</div>
+                <div class="viz-description">
+                    Visualisierung von 2×2 DGL-Systemen.
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
